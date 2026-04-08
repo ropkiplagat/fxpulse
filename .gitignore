@@ -1,0 +1,32 @@
+# Security — never commit these
+.credentials.enc
+.secret.key
+
+# Bot data & models
+models/
+logs/
+deploy/data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TensorFlow / Keras
+*.keras
+*.h5
