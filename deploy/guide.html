@@ -3,406 +3,343 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FXPulse — Complete User Guide</title>
+<title>FXPulse — Trader's Guide</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #080c14; --surface: #0d1321; --card: #111827;
-  --border: #1e2d45; --accent: #00d4ff; --accent2: #00ff88;
-  --accent3: #ff6b35; --gold: #ffc107; --text: #e8f0fe;
-  --muted: #6b7fa3; --danger: #ff4757;
-}
-* { margin:0; padding:0; box-sizing:border-box; }
-body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; }
-body::before { content:''; position:fixed; inset:0;
-  background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);
-  background-size:40px 40px; pointer-events:none; z-index:0; }
-
-.container { max-width:1000px; margin:0 auto; padding:0 24px; position:relative; z-index:1; }
-
-/* NAV */
-header { border-bottom:1px solid var(--border); padding:16px 0; position:sticky; top:0;
-  background:rgba(8,12,20,.95); backdrop-filter:blur(12px); z-index:100; }
-.header-inner { display:flex; align-items:center; justify-content:space-between; }
-.logo { font-family:'Space Mono',monospace; font-size:18px; font-weight:700; color:var(--accent); text-decoration:none; display:flex; align-items:center; gap:8px; }
-.logo-dot { width:7px; height:7px; background:var(--accent2); border-radius:50%; animation:pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
-.nav-links { display:flex; gap:6px; flex-wrap:wrap; }
-.nav-link { background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 12px; border-radius:16px; font-size:12px; font-family:'Space Mono',monospace; cursor:pointer; transition:.2s; text-decoration:none; }
-.nav-link:hover,.nav-link.active { border-color:var(--accent); color:var(--accent); }
-
-/* HERO */
-.hero { padding:60px 0 40px; text-align:center; }
-.hero-tag { display:inline-block; background:rgba(0,255,136,.1); border:1px solid rgba(0,255,136,.3); color:var(--accent2); padding:5px 14px; border-radius:16px; font-size:11px; font-family:'Space Mono',monospace; letter-spacing:2px; text-transform:uppercase; margin-bottom:20px; }
-.hero h1 { font-size:clamp(28px,4vw,46px); font-weight:600; line-height:1.15; margin-bottom:16px; letter-spacing:-1px; }
-.hero h1 span { background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-.hero p { color:var(--muted); font-size:16px; max-width:520px; margin:0 auto 32px; line-height:1.7; font-weight:300; }
-
-/* CHAPTER TABS */
-.chapter-tabs { display:flex; gap:12px; margin-bottom:40px; flex-wrap:wrap; }
-.tab-btn { flex:1; min-width:200px; padding:16px 20px; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--muted); cursor:pointer; transition:.2s; text-align:left; }
-.tab-btn:hover { border-color:var(--accent); }
-.tab-btn.active { border-color:var(--accent); background:rgba(0,212,255,.06); }
-.tab-num { font-family:'Space Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:2px; margin-bottom:6px; }
-.tab-title { font-size:15px; font-weight:600; color:var(--text); }
-.tab-sub { font-size:12px; color:var(--muted); margin-top:4px; }
-
-/* CHAPTER CONTENT */
-.chapter { display:none; animation:fadeIn .4s ease; }
-.chapter.active { display:block; }
-@keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-
-/* SECTION */
-.section { margin-bottom:48px; }
-.section-label { font-family:'Space Mono',monospace; font-size:11px; color:var(--accent); letter-spacing:3px; text-transform:uppercase; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
-.section-label::after { content:''; flex:1; height:1px; background:var(--border); }
-.section h2 { font-size:22px; font-weight:600; color:var(--text); margin-bottom:10px; }
-.section p { font-size:15px; color:var(--muted); line-height:1.75; margin-bottom:12px; font-weight:300; }
-
-/* CARDS */
-.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; margin-bottom:24px; }
-.card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:22px; transition:.25s; }
-.card:hover { border-color:var(--accent); transform:translateY(-2px); }
-.card-icon { font-size:24px; margin-bottom:10px; }
-.card-title { font-size:15px; font-weight:600; color:var(--text); margin-bottom:8px; }
-.card-desc { font-size:13px; color:var(--muted); line-height:1.65; }
-.card-tip { margin-top:10px; padding:8px 12px; background:rgba(0,212,255,.06); border-left:2px solid var(--accent); border-radius:0 5px 5px 0; font-size:12px; color:var(--accent); font-style:italic; }
-
-/* TABLE */
-.data-table { width:100%; border-collapse:collapse; font-size:14px; margin-bottom:24px; }
-.data-table th { background:rgba(0,212,255,.08); color:var(--accent); font-family:'Space Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; padding:12px 16px; text-align:left; border-bottom:1px solid var(--border); }
-.data-table td { padding:11px 16px; border-bottom:1px solid rgba(30,45,69,.5); color:var(--muted); vertical-align:top; line-height:1.55; }
-.data-table tr:hover td { background:rgba(0,212,255,.02); }
-.data-table td:first-child { color:var(--text); font-weight:500; }
-
-/* STEP CARDS */
-.steps { display:flex; flex-direction:column; gap:12px; margin-bottom:24px; }
-.step { display:flex; gap:16px; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px; align-items:flex-start; }
-.step-num { background:var(--accent); color:#000; font-family:'Space Mono',monospace; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; flex-shrink:0; }
-.step-content h4 { font-size:15px; font-weight:600; color:var(--text); margin-bottom:4px; }
-.step-content p { font-size:13px; color:var(--muted); line-height:1.55; }
-
-/* ALERTS */
-.tip-box { padding:12px 16px; background:rgba(0,212,255,.06); border-left:3px solid var(--accent); border-radius:0 8px 8px 0; margin-bottom:16px; font-size:13px; color:var(--accent); }
-.warn-box { padding:12px 16px; background:rgba(255,71,87,.06); border-left:3px solid var(--danger); border-radius:0 8px 8px 0; margin-bottom:16px; font-size:13px; color:var(--danger); }
-.info-box { padding:12px 16px; background:rgba(0,255,136,.06); border-left:3px solid var(--accent2); border-radius:0 8px 8px 0; margin-bottom:16px; font-size:13px; color:var(--accent2); }
-
-/* CODE */
-.code { font-family:'Space Mono',monospace; font-size:12px; background:rgba(0,0,0,.4); border:1px solid var(--border); padding:12px 16px; border-radius:6px; color:var(--accent2); margin-bottom:12px; word-break:break-all; }
-
-/* GLOSSARY */
-.gloss-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
-.gloss-item { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:14px 16px; }
-.gloss-term { font-family:'Space Mono',monospace; font-size:12px; color:var(--accent2); font-weight:700; margin-bottom:5px; }
-.gloss-def { font-size:13px; color:var(--muted); line-height:1.55; }
-
-/* DOS DONTS */
-.dd-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
-@media(max-width:600px){.dd-grid{grid-template-columns:1fr}}
-.dd-card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:22px; }
-.dd-head { font-family:'Space Mono',monospace; font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:16px; }
-.dd-head.do{color:var(--accent2)} .dd-head.dont{color:var(--danger)}
-.dd-item { display:flex; gap:10px; margin-bottom:10px; font-size:13px; color:var(--muted); line-height:1.55; }
-
-/* BADGE */
-.badge { display:inline-block; padding:2px 9px; border-radius:12px; font-size:11px; font-family:'Space Mono',monospace; }
-.badge-green{background:rgba(0,255,136,.15);color:var(--accent2)}
-.badge-yellow{background:rgba(255,193,7,.15);color:var(--gold)}
-.badge-blue{background:rgba(0,212,255,.15);color:var(--accent)}
-
-footer { border-top:1px solid var(--border); padding:32px 0; text-align:center; color:var(--muted); font-size:12px; margin-top:60px; }
+:root{--bg:#080c14;--card:#111827;--border:#1e2d45;--accent:#00d4ff;--accent2:#00ff88;--gold:#ffc107;--text:#e8f0fe;--muted:#6b7fa3;--danger:#ff4757}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+header{border-bottom:1px solid var(--border);padding:16px 0;position:sticky;top:0;background:rgba(8,12,20,.96);backdrop-filter:blur(12px);z-index:100}
+.hdr{display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;background:var(--accent2);border-radius:50%;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.dash-link{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--accent);padding:7px 16px;border-radius:20px;font-size:12px;font-family:'Space Mono',monospace;text-decoration:none;letter-spacing:1px;transition:.2s}
+.dash-link:hover{background:rgba(0,212,255,.2)}
+.hero{padding:64px 0 44px;text-align:center}
+.hero-tag{display:inline-block;background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--accent2);padding:5px 14px;border-radius:16px;font-size:11px;font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px}
+.hero h1{font-size:clamp(30px,4vw,48px);font-weight:600;line-height:1.15;margin-bottom:14px;letter-spacing:-1px}
+.hero h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--muted);font-size:16px;max-width:500px;margin:0 auto 36px;line-height:1.75;font-weight:300}
+.stats{display:flex;justify-content:center;gap:32px;flex-wrap:wrap;padding:22px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:52px}
+.stat{text-align:center}
+.stat-n{font-family:'Space Mono',monospace;font-size:22px;color:var(--accent);font-weight:700}
+.stat-l{font-size:11px;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+.tabs{display:flex;gap:10px;margin-bottom:40px;flex-wrap:wrap}
+.tab{flex:1;min-width:180px;padding:16px 18px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;text-align:left;transition:.2s;font-family:inherit}
+.tab:hover{border-color:var(--accent)}
+.tab.on{border-color:var(--accent);background:rgba(0,212,255,.06)}
+.tab-n{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;margin-bottom:5px}
+.tab-t{font-size:14px;font-weight:600;color:var(--text)}
+.tab-s{font-size:12px;color:var(--muted);margin-top:3px}
+.ch{display:none;animation:up .35s ease}
+.ch.on{display:block}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.sec{margin-bottom:52px}
+.sec-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec h2{font-size:22px;font-weight:600;color:var(--text);margin-bottom:10px}
+.sec p{font-size:15px;color:var(--muted);line-height:1.75;margin-bottom:14px;font-weight:300}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px;transition:.25s}
+.card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.card-ico{font-size:24px;margin-bottom:10px}
+.card-t{font-size:15px;font-weight:600;color:var(--text);margin-bottom:7px}
+.card-d{font-size:13px;color:var(--muted);line-height:1.65}
+.card-tip{margin-top:10px;padding:8px 12px;background:rgba(0,212,255,.06);border-left:2px solid var(--accent);border-radius:0 5px 5px 0;font-size:12px;color:var(--accent);font-style:italic}
+.steps{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.step{display:flex;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;align-items:flex-start}
+.step-n{background:var(--accent);color:#000;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:3px 9px;border-radius:16px;flex-shrink:0;margin-top:2px}
+.step h4{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px}
+.step p{font-size:13px;color:var(--muted);line-height:1.55}
+.tbl{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px}
+.tbl th{background:rgba(0,212,255,.08);color:var(--accent);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:11px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 14px;border-bottom:1px solid rgba(30,45,69,.4);color:var(--muted);line-height:1.55;vertical-align:top}
+.tbl tr:hover td{background:rgba(0,212,255,.02)}
+.tbl td:first-child{color:var(--text);font-weight:500}
+.tip{padding:11px 15px;background:rgba(0,212,255,.06);border-left:3px solid var(--accent);border-radius:0 7px 7px 0;margin-bottom:14px;font-size:13px;color:var(--accent)}
+.warn{padding:11px 15px;background:rgba(255,71,87,.06);border-left:3px solid var(--danger);border-radius:0 7px 7px 0;margin-bottom:14px;font-size:13px;color:var(--danger)}
+.ok{padding:11px 15px;background:rgba(0,255,136,.06);border-left:3px solid var(--accent2);border-radius:0 7px 7px 0;margin-bottom:14px;font-size:13px;color:var(--accent2)}
+.timeline{display:flex;flex-direction:column;gap:0;margin-bottom:20px}
+.tl{display:flex;gap:20px;position:relative}
+.tl:not(:last-child) .tl-line{position:absolute;left:15px;top:32px;bottom:-8px;width:2px;background:var(--border)}
+.tl-c{width:32px;height:32px;border-radius:50%;border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--accent);background:var(--bg);z-index:1}
+.tl-body{padding:4px 0 24px}
+.tl-body h4{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px}
+.tl-body p{font-size:13px;color:var(--muted);line-height:1.6}
+.weeks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:20px}
+.wk{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px}
+.wk-n{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:2px;margin-bottom:8px}
+.wk-t{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px}
+.wk-d{font-size:12px;color:var(--muted);line-height:1.6}
+.glos{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:20px}
+.gi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:.2s}
+.gi:hover{border-color:var(--accent2)}
+.gt{font-family:'Space Mono',monospace;font-size:12px;color:var(--accent2);font-weight:700;margin-bottom:5px}
+.gd{font-size:13px;color:var(--muted);line-height:1.6}
+.dd{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+@media(max-width:580px){.dd{grid-template-columns:1fr}}
+.ddc{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px}
+.ddh{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.ddh.do{color:var(--accent2)}.ddh.dn{color:var(--danger)}
+.ddi{display:flex;gap:9px;margin-bottom:9px;font-size:13px;color:var(--muted);line-height:1.55}
+footer{border-top:1px solid var(--border);padding:30px 0;text-align:center;color:var(--muted);font-size:12px;margin-top:60px}
 footer a{color:var(--accent);text-decoration:none}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="container">
-    <div class="header-inner">
-      <a href="/" class="logo"><div class="logo-dot"></div>FXPulse</a>
-      <nav class="nav-links">
-        <a href="#" class="nav-link active" onclick="showChapter('ch1',this)">Chapter 1</a>
-        <a href="#" class="nav-link" onclick="showChapter('ch2',this)">Chapter 2</a>
-        <a href="#" class="nav-link" onclick="showChapter('ch3',this)">Chapter 3</a>
-        <a href="/" class="nav-link">Dashboard</a>
-      </nav>
+  <div class="wrap">
+    <div class="hdr">
+      <a href="/" class="logo"><div class="dot"></div>FXPulse</a>
+      <a href="/" class="dash-link">← Dashboard</a>
     </div>
   </div>
 </header>
-
-<div class="container">
-
+<div class="wrap">
   <div class="hero">
-    <div class="hero-tag">📚 Complete User Guide</div>
-    <h1>FXPulse <span>Master Guide</span></h1>
-    <p>Three chapters covering system setup, your journey to the first trade, and the trading education every beginner needs.</p>
+    <div class="hero-tag">📚 Trader's Complete Guide</div>
+    <h1>Your Journey to<br><span>Automated Profits</span></h1>
+    <p>Everything you need to go from zero trading experience to confidently watching FXPulse grow your account — explained in plain English.</p>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-n">$7.5T</div><div class="stat-l">Daily Forex Volume</div></div>
+    <div class="stat"><div class="stat-n">28</div><div class="stat-l">Pairs Scanned</div></div>
+    <div class="stat"><div class="stat-n">65%+</div><div class="stat-l">AI Min Confidence</div></div>
+    <div class="stat"><div class="stat-n">24/5</div><div class="stat-l">FXPulse Runs</div></div>
+    <div class="stat"><div class="stat-n">1%</div><div class="stat-l">Max Risk/Trade</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" onclick="show('c1',0)"><div class="tab-n">CHAPTER 1</div><div class="tab-t">Understanding FXPulse</div><div class="tab-s">What it does & how it helps you</div></button>
+    <button class="tab" onclick="show('c2',1)"><div class="tab-n">CHAPTER 2</div><div class="tab-t">Your Trading Journey</div><div class="tab-s">From demo to first live trade</div></button>
+    <button class="tab" onclick="show('c3',2)"><div class="tab-n">CHAPTER 3</div><div class="tab-t">Trading Education</div><div class="tab-s">Rules, glossary & position sizing</div></button>
   </div>
 
-  <div class="chapter-tabs">
-    <button class="tab-btn active" onclick="showChapter('ch1',null,0)">
-      <div class="tab-num">CHAPTER 1</div>
-      <div class="tab-title">System Overview & Setup</div>
-      <div class="tab-sub">Credentials, VPS, configuration</div>
-    </button>
-    <button class="tab-btn" onclick="showChapter('ch2',null,1)">
-      <div class="tab-num">CHAPTER 2</div>
-      <div class="tab-title">Zero to First Trade</div>
-      <div class="tab-sub">Step-by-step beginner journey</div>
-    </button>
-    <button class="tab-btn" onclick="showChapter('ch3',null,2)">
-      <div class="tab-num">CHAPTER 3</div>
-      <div class="tab-title">Trading Education</div>
-      <div class="tab-sub">9 golden rules, glossary, position sizing</div>
-    </button>
-  </div>
-
-  <!-- ═══ CHAPTER 1 ═══ -->
-  <div class="chapter active" id="ch1">
-
-    <div class="section">
-      <div class="section-label">System Architecture</div>
-      <h2>How FXPulse Is Built</h2>
-      <table class="data-table">
-        <tr><th>Component</th><th>Details</th></tr>
-        <tr><td>Windows VPS</td><td>Contabo — 161.97.83.167 — Windows Server 2022 — 8GB RAM</td></tr>
-        <tr><td>MetaTrader 5</td><td>Trading platform on VPS — connects to Pepperstone broker</td></tr>
-        <tr><td>FXPulse Bot</td><td>Python AI at C:\fxpulse — controls MT5 — pushes to dashboard</td></tr>
-        <tr><td>Web Dashboard</td><td>myforexpulse.com — live status from any browser</td></tr>
-        <tr><td>GitHub</td><td>github.com/ropkiplagat/fxpulse — version control</td></tr>
-      </table>
+  <!-- CHAPTER 1 -->
+  <div class="ch on" id="c1">
+    <div class="sec">
+      <div class="sec-lbl">What Is FXPulse</div>
+      <h2>Your Personal AI Trading Partner</h2>
+      <p>FXPulse is a fully automated AI forex trading bot that works for you 24 hours a day, 5 days a week. It monitors 28 currency pairs around the clock, finds the highest-probability setups, and executes them automatically in your Pepperstone account — while you sleep, work, or live your life.</p>
+      <p>Think of it as hiring a professional trader who never gets tired, never panics, and only places a trade when the AI is at least 65% confident it will win.</p>
+      <div class="ok">✅ You do NOT need any forex experience to benefit from FXPulse. The bot handles 100% of the analysis, timing, and execution.</div>
     </div>
-
-    <div class="section">
-      <div class="section-label">VPS Access</div>
-      <h2>Connecting via Remote Desktop</h2>
+    <div class="sec">
+      <div class="sec-lbl">The Problem It Solves</div>
+      <h2>Why Most Traders Fail — And Why You Won't</h2>
+      <div class="grid">
+        <div class="card"><div class="card-ico">😕</div><div class="card-t">Don't know when to trade</div><div class="card-d">The forex market is overwhelmingly complex. 28 pairs, thousands of signals, constant noise.</div><div class="card-tip">FXPulse scans everything every 60 seconds and only acts on high-confidence setups.</div></div>
+        <div class="card"><div class="card-ico">😰</div><div class="card-t">Emotional decisions</div><div class="card-d">Fear causes early exits. Greed causes holding losers. Hope is the most expensive word in trading.</div><div class="card-tip">FXPulse follows rules 100% — no fear, no greed, no panic. Ever.</div></div>
+        <div class="card"><div class="card-ico">⏰</div><div class="card-t">No time to monitor</div><div class="card-d">Professional trading requires constant attention across multiple time zones every day.</div><div class="card-tip">FXPulse runs 24/5 automatically. You check the dashboard once a day.</div></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-lbl">How It Decides</div>
+      <h2>The 5-Layer Decision System</h2>
+      <p>Before placing any trade, FXPulse runs 5 independent checks. <strong style="color:var(--text)">All 5 must agree</strong> — otherwise no trade is placed. This is why FXPulse sometimes goes hours without trading. It waits for the perfect setup, not just any setup.</p>
+      <div class="grid">
+        <div class="card"><div class="card-ico">💪</div><div class="card-t">1. Currency Strength</div><div class="card-d">Ranks all 8 major currencies every 60 seconds. Only buys the strongest against the weakest — like betting on a champion vs a bottom-ranked fighter.</div></div>
+        <div class="card"><div class="card-ico">🧱</div><div class="card-t">2. Renko Signal</div><div class="card-d">Uses special Renko brick charts that filter market noise. Only enters on clean, high-probability pullback patterns.</div></div>
+        <div class="card"><div class="card-ico">🤖</div><div class="card-t">3. AI Confidence</div><div class="card-d">XGBoost + LSTM machine learning models calculate win probability. Minimum 65% required. Below that — no trade placed.</div></div>
+        <div class="card"><div class="card-ico">📈</div><div class="card-t">4. Regime Filter</div><div class="card-d">Checks whether the market is trending or ranging. FXPulse completely skips sideways markets where false signals are most common.</div></div>
+        <div class="card"><div class="card-ico">📰</div><div class="card-t">5. News Filter</div><div class="card-d">Checks the economic calendar. Blocks all trading 30 minutes before high-impact news events that cause violent, unpredictable price spikes.</div></div>
+      </div>
+      <div class="tip">💡 If FXPulse is not trading, the market doesn't meet the quality standard. This is correct behaviour — not a problem.</div>
+    </div>
+    <div class="sec">
+      <div class="sec-lbl">What Happens in a Trade</div>
+      <h2>From Signal to Profit — Automatically</h2>
+      <p>When all 5 layers agree, here is exactly what FXPulse does — without you touching anything:</p>
       <div class="steps">
-        <div class="step"><span class="step-num">1</span><div class="step-content"><h4>Press Windows + R</h4><p>Type mstsc and press Enter to open Remote Desktop Connection</p></div></div>
-        <div class="step"><span class="step-num">2</span><div class="step-content"><h4>Enter VPS IP</h4><p>Computer: <strong style="color:var(--accent)">161.97.83.167</strong></p></div></div>
-        <div class="step"><span class="step-num">3</span><div class="step-content"><h4>Log In</h4><p>Username: <strong style="color:var(--accent)">Administrator</strong> &nbsp;|&nbsp; Password: <strong style="color:var(--accent)">2VKn282EEqF1c1</strong></p></div></div>
-        <div class="step"><span class="step-num">4</span><div class="step-content"><h4>Accept certificate</h4><p>Click Yes on the security warning — you are now inside the VPS</p></div></div>
+        <div class="step"><span class="step-n">1</span><div><h4>Entry Order Placed</h4><p>FXPulse opens a BUY or SELL on the currency pair at the optimal price.</p></div></div>
+        <div class="step"><span class="step-n">2</span><div><h4>Stop Loss Set Automatically</h4><p>A maximum loss limit is placed. If price moves against the trade, it closes here — limiting loss to 1% of your account.</p></div></div>
+        <div class="step"><span class="step-n">3</span><div><h4>Take Profit Set at 2× the Risk</h4><p>If FXPulse risks 50 pips, the target is 100 pips. You always make more than you risk.</p></div></div>
+        <div class="step"><span class="step-n">4</span><div><h4>Partial Close at 1R</h4><p>When profit equals the initial risk, FXPulse closes 50% of the position and locks in profit.</p></div></div>
+        <div class="step"><span class="step-n">5</span><div><h4>Stop Loss Moved to Break-Even</h4><p>The stop loss moves to the entry price. The trade can now only make more money — it cannot lose.</p></div></div>
+        <div class="step"><span class="step-n">6</span><div><h4>Trailing Stop + Final Close at 2R</h4><p>The stop follows price as it moves in your favour. Remaining 50% closes at the full target.</p></div></div>
       </div>
-      <div class="warn-box">⚠️ Never shut down the VPS while FXPulse has open trades. Always stop the bot first.</div>
+      <div class="ok">✅ Once step 5 is complete, FXPulse cannot lose on that trade. Your capital is protected while still reaching for maximum profit.</div>
     </div>
-
-    <div class="section">
-      <div class="section-label">Running FXPulse</div>
-      <h2>Start / Stop Commands</h2>
-      <div class="code">& "C:\Program Files\Python311\python.exe" C:\fxpulse\main.py</div>
-      <div class="code">nssm start FXPulse &nbsp;&nbsp;|&nbsp;&nbsp; nssm stop FXPulse &nbsp;&nbsp;|&nbsp;&nbsp; nssm status FXPulse</div>
-      <table class="data-table">
-        <tr><th>Key</th><th>Action While Bot Runs</th></tr>
-        <tr><td>T</td><td>Force immediate market scan</td></tr>
-        <tr><td>R</td><td>Retrain AI model now</td></tr>
-        <tr><td>Q</td><td>Quit safely — closes positions first</td></tr>
+    <div class="sec">
+      <div class="sec-lbl">Your Dashboard</div>
+      <h2>What You See at myforexpulse.com</h2>
+      <p>Your live dashboard is accessible from any device — phone, tablet, laptop — from anywhere in the world. Check it once a day. That is your entire daily task.</p>
+      <table class="tbl">
+        <tr><th>Dashboard Element</th><th>What It Tells You</th></tr>
+        <tr><td>Bot Status: RUNNING</td><td>FXPulse is active, scanning markets, ready to trade</td></tr>
+        <tr><td>Bot Status: STOPPED</td><td>FXPulse needs restarting — contact support immediately</td></tr>
+        <tr><td>Open Trades</td><td>Live trades in the market with real-time profit/loss</td></tr>
+        <tr><td>Currency Strength Bar</td><td>Green = strong, red = weak. FXPulse buys green vs red.</td></tr>
+        <tr><td>Win Rate %</td><td>Percentage of closed trades that were profitable — target 55%+</td></tr>
+        <tr><td>Daily P&amp;L</td><td>Today's profit or loss in your account currency</td></tr>
+        <tr><td>Drawdown %</td><td>How far below peak your account is — normal is 0–15%</td></tr>
+        <tr><td>Upcoming News</td><td>Events FXPulse will avoid — explains quiet trading periods</td></tr>
       </table>
     </div>
-
-    <div class="section">
-      <div class="section-label">Configuration</div>
-      <h2>Key Settings in config.py</h2>
-      <div class="code">notepad C:\fxpulse\config.py</div>
-      <table class="data-table">
-        <tr><th>Setting</th><th>Description</th></tr>
-        <tr><td>PAPER_TRADING = True</td><td>Demo mode — no real money. Set False to go live.</td></tr>
-        <tr><td>RISK_PERCENT = 1.0</td><td>% of account risked per trade. Never exceed 2%.</td></tr>
-        <tr><td>MIN_WIN_PROBABILITY = 0.65</td><td>AI only trades when 65%+ confident</td></tr>
-        <tr><td>MAX_DAILY_DRAWDOWN = 5.0</td><td>Auto-halt if daily loss exceeds 5%</td></tr>
-        <tr><td>USE_NEWS_FILTER = True</td><td>Block trades during high-impact news</td></tr>
-        <tr><td>TELEGRAM_TOKEN</td><td>Telegram bot token for trade alerts</td></tr>
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="section-label">Pepperstone Demo Account</div>
-      <h2>Your Trading Account</h2>
-      <table class="data-table">
-        <tr><th>Field</th><th>Details</th></tr>
-        <tr><td>Account Number</td><td>61508353</td></tr>
-        <tr><td>Password</td><td>:Bq6cawmyx</td></tr>
-        <tr><td>Server</td><td>mt5-demo01.pepperstone.com</td></tr>
-        <tr><td>Balance</td><td>$50,000 AUD (demo)</td></tr>
-        <tr><td>Leverage</td><td>1:30</td></tr>
-      </table>
-      <div class="warn-box">⚠️ This is a DEMO account — no real money at risk. Run demo for minimum 4 weeks.</div>
-    </div>
-
-    <div class="section">
-      <div class="section-label">Troubleshooting</div>
-      <h2>Common Issues & Fixes</h2>
-      <table class="data-table">
-        <tr><th>Issue</th><th>Fix</th></tr>
-        <tr><td>MT5 IPC timeout</td><td>Make sure MT5 is open and logged into Pepperstone BEFORE starting the bot</td></tr>
-        <tr><td>ModuleNotFoundError</td><td>Run: pip install -r C:\fxpulse\requirements.txt</td></tr>
-        <tr><td>Service won't start</td><td>nssm remove FXPulse confirm — then reinstall</td></tr>
-        <tr><td>Dashboard not updating</td><td>Check SITEGROUND_API_URL in config.py</td></tr>
-        <tr><td>No trades for 2+ days</td><td>Markets are ranging — bot is correctly paused</td></tr>
-      </table>
-    </div>
-
   </div>
 
-  <!-- ═══ CHAPTER 2 ═══ -->
-  <div class="chapter" id="ch2">
-
-    <div class="section">
-      <div class="section-label">What FXPulse Does</div>
-      <h2>Your AI Trading Partner</h2>
-      <p>FXPulse scans 28 currency pairs every 60 seconds, uses AI to find high-confidence setups, and places and manages trades automatically — while you sleep, work, or live your life.</p>
-      <div class="info-box">✅ You do NOT need forex experience to use FXPulse. The bot handles 100% of analysis and execution.</div>
-    </div>
-
-    <div class="section">
-      <div class="section-label">5-Layer Decision System</div>
-      <h2>How FXPulse Decides to Trade</h2>
-      <div class="card-grid">
-        <div class="card"><div class="card-icon">💪</div><div class="card-title">1. Currency Strength</div><div class="card-desc">Ranks all 8 major currencies every 60 seconds. Only buys the strongest against the weakest.</div></div>
-        <div class="card"><div class="card-icon">📊</div><div class="card-title">2. Renko Signal</div><div class="card-desc">Filters market noise using special brick charts. Only enters on clean pullback patterns.</div></div>
-        <div class="card"><div class="card-icon">🤖</div><div class="card-title">3. AI Confidence</div><div class="card-desc">XGBoost + LSTM models calculate win probability. Minimum 65% required to trade.</div></div>
-        <div class="card"><div class="card-icon">📈</div><div class="card-title">4. Regime Filter</div><div class="card-desc">Checks trending vs ranging markets. Completely skips sideways conditions.</div></div>
-        <div class="card"><div class="card-icon">📰</div><div class="card-title">5. News Filter</div><div class="card-desc">Blocks all trades 30 minutes before high-impact economic news events.</div></div>
-      </div>
-      <div class="tip-box">💡 All 5 layers must agree before any trade is placed. This is why FXPulse sometimes pauses for hours — it's waiting for perfection, not just any trade.</div>
-    </div>
-
-    <div class="section">
-      <div class="section-label">Your Journey</div>
-      <h2>7 Steps: Zero to First Live Trade</h2>
-      <div class="steps">
-        <div class="step"><span class="step-num">1</span><div class="step-content"><h4>Read this manual</h4><p>Understand what FXPulse does and the risks involved. 30 minutes.</p></div></div>
-        <div class="step"><span class="step-num">2</span><div class="step-content"><h4>Access the VPS</h4><p>Connect via Remote Desktop — mstsc → 161.97.83.167</p></div></div>
-        <div class="step"><span class="step-num">3</span><div class="step-content"><h4>Log MT5 into Pepperstone</h4><p>File → Login → Account 61508353 / Server mt5-demo01.pepperstone.com</p></div></div>
-        <div class="step"><span class="step-num">4</span><div class="step-content"><h4>Start FXPulse in paper mode</h4><p>Run the bot on fake money. Watch the first simulated trade fire.</p></div></div>
-        <div class="step"><span class="step-num">5</span><div class="step-content"><h4>Monitor for 4 weeks</h4><p>Check dashboard daily. Review weekly logs. Build confidence in the system.</p></div></div>
-        <div class="step"><span class="step-num">6</span><div class="step-content"><h4>Go live with real money</h4><p>Open real Pepperstone account. Switch PAPER_TRADING = False in config.py.</p></div></div>
-        <div class="step"><span class="step-num">7</span><div class="step-content"><h4>Daily monitoring</h4><p>5 minutes per day. Sunday weekly review. FXPulse handles the rest 24/7.</p></div></div>
+  <!-- CHAPTER 2 -->
+  <div class="ch" id="c2">
+    <div class="sec">
+      <div class="sec-lbl">Your Journey</div>
+      <h2>From Zero to First Live Trade</h2>
+      <p>This is your complete roadmap. Follow these phases in order. Do not rush the demo phase — it is the most valuable thing you can do before risking real money.</p>
+      <div class="timeline">
+        <div class="tl"><div class="tl-c">1</div><div class="tl-line"></div><div class="tl-body"><h4>Read this guide</h4><p>Understand what FXPulse does, how it makes decisions, and what the risks are. 30 minutes of reading saves thousands of dollars.</p></div></div>
+        <div class="tl"><div class="tl-c">2</div><div class="tl-line"></div><div class="tl-body"><h4>Open a free Pepperstone demo account</h4><p>Visit pepperstone.com → Open Demo → select MT5 → AUD currency. Takes 2 minutes. Completely free, no deposit required.</p></div></div>
+        <div class="tl"><div class="tl-c">3</div><div class="tl-line"></div><div class="tl-body"><h4>FXPulse is connected to your demo</h4><p>Your support team configures FXPulse to trade your Pepperstone demo account with $50,000 virtual funds.</p></div></div>
+        <div class="tl"><div class="tl-c">4</div><div class="tl-line"></div><div class="tl-body"><h4>Monitor 4 weeks of paper trading</h4><p>Check the dashboard daily. Watch FXPulse find and execute trades. Learn the system with zero risk to your money.</p></div></div>
+        <div class="tl"><div class="tl-c">5</div><div class="tl-line"></div><div class="tl-body"><h4>Review your 4-week results</h4><p>Win rate 55%+, positive P&amp;L, confidence in the system — these are your green lights to proceed.</p></div></div>
+        <div class="tl"><div class="tl-c">6</div><div class="tl-line"></div><div class="tl-body"><h4>Open a live Pepperstone account</h4><p>Visit pepperstone.com → Open Live Account → verify identity → deposit AUD $1,000 minimum.</p></div></div>
+        <div class="tl"><div class="tl-c">7</div><div class="tl-body"><h4>FXPulse switches to live trading</h4><p>Support team connects FXPulse to your live account. Real trades begin. Your daily job: check dashboard once a day.</p></div></div>
       </div>
     </div>
-
-    <div class="section">
-      <div class="section-label">Paper Trading Phase</div>
-      <h2>Weeks 1–4 Guide</h2>
-      <table class="data-table">
-        <tr><th>Week</th><th>Your Focus</th></tr>
-        <tr><td>Week 1</td><td>Watch FXPulse run. Read every signal in terminal. Learn what 65%+ confidence looks like.</td></tr>
-        <tr><td>Week 2</td><td>Check dashboard daily. Note which pairs perform best. Review C:\fxpulse\logs\ CSV files.</td></tr>
-        <tr><td>Week 3</td><td>Calculate win rate (wins ÷ total trades). Healthy target: 55–70% over 50+ trades.</td></tr>
-        <tr><td>Week 4</td><td>Review total P&L and drawdown. Positive results → prepare to go live.</td></tr>
+    <div class="sec">
+      <div class="sec-lbl">Paper Trading Phase</div>
+      <h2>Your 4-Week Demo Roadmap</h2>
+      <p>The demo phase is not just a formality. It builds your confidence, proves the system works, and trains your psychology before real money is involved.</p>
+      <div class="weeks">
+        <div class="wk"><div class="wk-n">WEEK 1</div><div class="wk-t">Observe & Learn</div><div class="wk-d">Watch every signal FXPulse places. Read the dashboard daily. Get familiar with how the bot communicates.</div></div>
+        <div class="wk"><div class="wk-n">WEEK 2</div><div class="wk-t">Track Patterns</div><div class="wk-d">Note which pairs perform best. What days are most active? When does FXPulse pause? Learn the rhythm.</div></div>
+        <div class="wk"><div class="wk-n">WEEK 3</div><div class="wk-t">Measure Performance</div><div class="wk-d">Count wins vs losses. Calculate win rate. A healthy system targets 55–70% win rate over 50+ trades.</div></div>
+        <div class="wk"><div class="wk-n">WEEK 4</div><div class="wk-t">Make the Decision</div><div class="wk-d">Review total P&amp;L and maximum drawdown. Positive results and genuine confidence = ready to go live.</div></div>
+      </div>
+      <div class="warn">⚠️ Do NOT go live until you have at least 40–50 completed paper trades and a positive P&amp;L. Impatience is the most expensive mistake beginners make.</div>
+    </div>
+    <div class="sec">
+      <div class="sec-lbl">Green Light Checklist</div>
+      <h2>Are You Ready to Go Live?</h2>
+      <table class="tbl">
+        <tr><th>Checkpoint</th><th>Target to Reach</th></tr>
+        <tr><td>Paper trades completed</td><td>40 or more</td></tr>
+        <tr><td>Win rate over all paper trades</td><td>55% or higher</td></tr>
+        <tr><td>Maximum drawdown experienced</td><td>Less than 15%</td></tr>
+        <tr><td>Profitable weeks out of 4</td><td>3 or more</td></tr>
+        <tr><td>Largest single trade loss</td><td>Less than 1.5% of account</td></tr>
+        <tr><td>You understand what FXPulse is doing</td><td>Yes — you have read this guide</td></tr>
+        <tr><td>Deposit amount</td><td>Only money you can afford to lose completely</td></tr>
       </table>
-      <div class="warn-box">⚠️ Do NOT go live with real money until you have 40–50 paper trades and a positive P&L.</div>
+      <div class="ok">✅ All 7 checkpoints met? Contact your support team to switch to live mode.</div>
     </div>
+    <div class="sec">
+      <div class="sec-lbl">Daily Life as a Trader</div>
+      <h2>What Your Week Actually Looks Like</h2>
+      <div class="grid">
+        <div class="card"><div class="card-ico">🌅</div><div class="card-t">Every Morning (5 min)</div><div class="card-d">Open myforexpulse.com. Check bot status, overnight trades, and account balance. Close the tab and get on with your day.</div></div>
+        <div class="card"><div class="card-ico">🌆</div><div class="card-t">Every Evening (5 min)</div><div class="card-d">Check today's P&amp;L. Note any trades that closed. If everything looks normal, you are done for the day.</div></div>
+        <div class="card"><div class="card-ico">📅</div><div class="card-t">Every Sunday (15 min)</div><div class="card-d">Weekly review. Check win rate, total P&amp;L, and biggest wins/losses from the past week. Spot patterns over time.</div></div>
+        <div class="card"><div class="card-ico">🚨</div><div class="card-t">When to Contact Support</div><div class="card-d">Bot shows STOPPED for 30+ minutes. Dashboard not updating. Unexpected large loss. These are the only times action is needed.</div></div>
+      </div>
+      <div class="tip">💡 The less you interfere with FXPulse, the better it performs. Your role is observer and reviewer — not trader.</div>
+    </div>
+    <div class="sec">
+      <div class="sec-lbl">Common Questions</div>
+      <h2>What Every Beginner Asks</h2>
+      <div class="grid">
+        <div class="card"><div class="card-t">No trades for 2 days?</div><div class="card-d">Almost certainly fine. Markets are ranging or news events are frequent. If dashboard shows Bot Status: RUNNING, it is working. Quiet periods are part of the strategy.</div></div>
+        <div class="card"><div class="card-t">Lost 5 trades in a row?</div><div class="card-d">Do not turn it off. Losing streaks of 5–7 are statistically normal. Turning the bot off during a streak locks in losses and misses the recovery. Judge FXPulse over 100+ trades.</div></div>
+        <div class="card"><div class="card-t">Trade open for 3 days?</div><div class="card-d">Completely normal. Some trades take time to reach their target. As long as the stop is at break-even, you cannot lose. Let FXPulse manage it.</div></div>
+        <div class="card"><div class="card-t">How much can I make?</div><div class="card-d">FXPulse targets 3–8% monthly in good conditions. Some months will be negative. Annual target 30–60% — never guaranteed. Only invest what you can afford to lose.</div></div>
+        <div class="card"><div class="card-t">Can I trade manually too?</div><div class="card-d">Not recommended for beginners. Manual trades compete with FXPulse for account margin. If you want to learn manual trading, use a completely separate account.</div></div>
+        <div class="card"><div class="card-t">How do I withdraw profits?</div><div class="card-d">Log into your Pepperstone account portal at any time and request a withdrawal. FXPulse continues running on whatever balance remains after the withdrawal.</div></div>
+      </div>
+    </div>
+  </div>
 
-    <div class="section">
-      <div class="section-label">Risk Management</div>
-      <h2>Position Sizing by Account Size</h2>
-      <table class="data-table">
-        <tr><th>Account</th><th>Risk/Trade (1%)</th><th>Lot Size</th><th>Max Daily Loss</th></tr>
+  <!-- CHAPTER 3 -->
+  <div class="ch" id="c3">
+    <div class="sec">
+      <div class="sec-lbl">The 9 Golden Rules</div>
+      <h2>What Every Successful Trader Knows</h2>
+      <div class="grid">
+        <div class="card"><div class="card-ico">🛡️</div><div class="card-t">1. Protect Capital First</div><div class="card-d">Your job is NOT to make money — it is to not lose it. A 50% loss requires a 100% gain just to break even. Capital preservation always comes first.</div><div class="card-tip">FXPulse risks only 1% per trade. This single rule keeps accounts alive long-term.</div></div>
+        <div class="card"><div class="card-ico">📐</div><div class="card-t">2. Know Pips & Lots</div><div class="card-d">A pip is the smallest price move (0.0001 on EURUSD). FXPulse uses micro lots to keep your risk proportional to your account size at all times.</div><div class="card-tip">FXPulse auto-calculates the right lot size for your account. You never need to do this manually.</div></div>
+        <div class="card"><div class="card-ico">⚖️</div><div class="card-t">3. Always 1:2 Risk:Reward</div><div class="card-d">Risk 50 pips → target 100 pips. This means you can lose 40% of your trades and still be net profitable over time.</div><div class="card-tip">FXPulse targets 2R on every trade. This is built into the system and non-negotiable.</div></div>
+        <div class="card"><div class="card-ico">📰</div><div class="card-t">4. Respect News Events</div><div class="card-d">NFP, CPI, interest rate decisions can spike 100+ pips in seconds. These moves are violent, fast, and almost impossible to trade profitably.</div><div class="card-tip">FXPulse's news filter handles this automatically. Never ask to disable it.</div></div>
+        <div class="card"><div class="card-ico">🌊</div><div class="card-t">5. Trade With the Trend</div><div class="card-d">The most reliable trades follow the prevailing market direction. Fighting the trend is the single biggest mistake beginners make.</div><div class="card-tip">FXPulse's regime filter identifies and follows trends automatically.</div></div>
+        <div class="card"><div class="card-ico">🧠</div><div class="card-t">6. Remove Emotion</div><div class="card-d">Fear makes you exit winners early. Greed makes you hold losers. Hope is the most expensive word in trading. Rules beat feelings every time.</div><div class="card-tip">FXPulse is completely emotionless. Your job is to let it do its job.</div></div>
+        <div class="card"><div class="card-ico">📉</div><div class="card-t">7. Drawdown Is Normal</div><div class="card-d">Every professional trading system — including those run by hedge funds — experiences losing periods. This is normal, expected, and temporary.</div><div class="card-tip">FXPulse auto-halts at 5% daily drawdown to protect you from extreme scenarios.</div></div>
+        <div class="card"><div class="card-ico">🧪</div><div class="card-t">8. Demo First, Always</div><div class="card-d">Your psychology changes completely when real money is on the line. Build confidence on demo before you ever risk your own capital.</div><div class="card-tip">You are in paper trading mode right now. This is exactly where you should be.</div></div>
+        <div class="card"><div class="card-ico">📊</div><div class="card-t">9. Review Your Results</div><div class="card-d">The traders who improve fastest are those who review results weekly. Patterns in data are worth more than any tip, signal, or guru advice.</div><div class="card-tip">FXPulse logs every trade. Review them every Sunday at myforexpulse.com.</div></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-lbl">Forex Glossary</div>
+      <h2>Key Terms in Plain English</h2>
+      <div class="glos">
+        <div class="gi"><div class="gt">PIP</div><div class="gd">Smallest price movement. For EURUSD, 1 pip = 0.0001. On a standard lot this equals $10.</div></div>
+        <div class="gi"><div class="gt">SPREAD</div><div class="gd">The gap between buy and sell price. Pepperstone charges from 0.0 pips — among the lowest available.</div></div>
+        <div class="gi"><div class="gt">LOT SIZE</div><div class="gd">Standard = 100,000 units. Mini = 10,000. Micro = 1,000. FXPulse uses micro lots to keep risk small.</div></div>
+        <div class="gi"><div class="gt">LEVERAGE</div><div class="gd">Control more with less capital. Your 1:30 account means every $1 you deposit controls $30 in the market.</div></div>
+        <div class="gi"><div class="gt">MARGIN</div><div class="gd">Deposit your broker holds as security for open trades. Keep your margin level above 200% at all times.</div></div>
+        <div class="gi"><div class="gt">STOP LOSS</div><div class="gd">Automatically closes a losing trade at a set price. FXPulse ALWAYS places one — it never trades without protection.</div></div>
+        <div class="gi"><div class="gt">TAKE PROFIT</div><div class="gd">Automatically closes a winning trade at your target. FXPulse targets 2R — twice the amount risked.</div></div>
+        <div class="gi"><div class="gt">DRAWDOWN</div><div class="gd">How far your account has dropped from its peak. 10% drawdown from $10,000 means account is at $9,000.</div></div>
+        <div class="gi"><div class="gt">BULL / BEAR</div><div class="gd">Bullish = price going up (FXPulse buys). Bearish = going down (FXPulse sells). The bot profits in both directions.</div></div>
+        <div class="gi"><div class="gt">RENKO</div><div class="gd">Chart type that filters noise — only prints a new block when price moves a meaningful amount. FXPulse entry signal.</div></div>
+        <div class="gi"><div class="gt">CONFLUENCE</div><div class="gd">Multiple signals all agreeing at once. FXPulse requires all 5 layers to agree before any trade is placed.</div></div>
+        <div class="gi"><div class="gt">R:R RATIO</div><div class="gd">Risk-to-Reward. FXPulse always targets 1:2 — risk $50 to make $100. Over 100 trades this compounds powerfully.</div></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-lbl">Dos & Don'ts</div>
+      <h2>The 16 Rules That Separate Winners from Losers</h2>
+      <div class="dd">
+        <div class="ddc">
+          <div class="ddh do">✅ Always Do This</div>
+          <div class="ddi"><span>✅</span>Let FXPulse run without interfering</div>
+          <div class="ddi"><span>✅</span>Check the dashboard once per day</div>
+          <div class="ddi"><span>✅</span>Run demo for minimum 4 full weeks</div>
+          <div class="ddi"><span>✅</span>Review performance every Sunday</div>
+          <div class="ddi"><span>✅</span>Start live at 0.5% risk, not 1%</div>
+          <div class="ddi"><span>✅</span>Contact support when bot shows STOPPED</div>
+          <div class="ddi"><span>✅</span>Trust that drawdown is completely normal</div>
+          <div class="ddi"><span>✅</span>Only deposit money you can afford to lose</div>
+        </div>
+        <div class="ddc">
+          <div class="ddh dn">❌ Never Do This</div>
+          <div class="ddi"><span>❌</span>Manually close FXPulse trades early</div>
+          <div class="ddi"><span>❌</span>Ask to disable the news filter</div>
+          <div class="ddi"><span>❌</span>Go live before completing the demo phase</div>
+          <div class="ddi"><span>❌</span>Panic and stop the bot during a losing streak</div>
+          <div class="ddi"><span>❌</span>Increase risk above 2% per trade</div>
+          <div class="ddi"><span>❌</span>Chase losses by asking for bigger lot sizes</div>
+          <div class="ddi"><span>❌</span>Judge performance over fewer than 50 trades</div>
+          <div class="ddi"><span>❌</span>Invest money you need for living expenses</div>
+        </div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-lbl">Position Sizing</div>
+      <h2>Risk Per Trade by Account Size</h2>
+      <p>FXPulse calculates this automatically. Here is what 1% risk looks like across different account sizes so you understand the numbers:</p>
+      <table class="tbl">
+        <tr><th>Your Account</th><th>Risk Per Trade (1%)</th><th>Lot Size</th><th>Max Daily Loss (5%)</th></tr>
         <tr><td>$1,000 AUD</td><td>$10</td><td>0.01 lots</td><td>$50</td></tr>
         <tr><td>$5,000 AUD</td><td>$50</td><td>0.05 lots</td><td>$250</td></tr>
         <tr><td>$10,000 AUD</td><td>$100</td><td>0.10 lots</td><td>$500</td></tr>
         <tr><td>$25,000 AUD</td><td>$250</td><td>0.25 lots</td><td>$1,250</td></tr>
         <tr><td>$50,000 AUD</td><td>$500</td><td>0.50 lots</td><td>$2,500</td></tr>
       </table>
+      <div class="tip">💡 Start live trading at 0.5% risk for your first 3 months. Scale up to 1% only after consistent positive results.</div>
+      <div class="warn">⚠️ Even 10 consecutive losing trades at 1% risk = only 10% account loss. Always recoverable. Never trade at more than 2%.</div>
     </div>
-
-    <div class="section">
-      <div class="section-label">FAQ</div>
-      <h2>Common Questions</h2>
-      <div class="card-grid">
-        <div class="card"><div class="card-title">No trades for 2 days?</div><div class="card-desc">Markets are ranging. If terminal shows "Scanning... no signal" — the bot is working correctly. This is good behaviour.</div></div>
-        <div class="card"><div class="card-title">5 losses in a row?</div><div class="card-desc">Statistically normal. Judge FXPulse over 100+ trades, not 5. Turning it off during a streak locks in losses and misses recovery.</div></div>
-        <div class="card"><div class="card-title">How much can I make?</div><div class="card-desc">FXPulse targets 3–8% monthly in ideal conditions. Some months negative. Annual target 30–60% — not guaranteed.</div></div>
-        <div class="card"><div class="card-title">VPS went offline?</div><div class="card-desc">Open trades stay open in Pepperstone until SL/TP hits. Reconnect via RDP and restart FXPulse as soon as possible.</div></div>
-      </div>
-    </div>
-
   </div>
-
-  <!-- ═══ CHAPTER 3 ═══ -->
-  <div class="chapter" id="ch3">
-
-    <div class="section">
-      <div class="section-label">The 9 Golden Rules</div>
-      <h2>What Every Trader Must Know</h2>
-      <div class="card-grid">
-        <div class="card"><div class="card-icon">🛡️</div><div class="card-title">1. Protect Capital First</div><div class="card-desc">Your job is not to make money — it's to not lose money. A 50% loss needs a 100% gain to recover.</div><div class="card-tip">FXPulse risks only 1% per trade. Never change it above 2%.</div></div>
-        <div class="card"><div class="card-icon">📊</div><div class="card-title">2. Know Pips & Lots</div><div class="card-desc">1 pip = 0.0001 on EURUSD. Standard lot = 100,000 units. FXPulse uses micro lots (0.01–0.10).</div><div class="card-tip">On EURUSD, 1 pip = $10 per standard lot.</div></div>
-        <div class="card"><div class="card-icon">⚖️</div><div class="card-title">3. Risk:Reward 1:2 Minimum</div><div class="card-desc">Risk 50 pips → target 100 pips. You can be wrong 40% of the time and still profit.</div><div class="card-tip">FXPulse targets 2R on every trade automatically.</div></div>
-        <div class="card"><div class="card-icon">📰</div><div class="card-title">4. News Moves Markets</div><div class="card-desc">NFP, CPI, rate decisions can spike 100+ pips in seconds. Always avoid trading during news.</div><div class="card-tip">FXPulse's news filter blocks trading automatically. Never disable it.</div></div>
-        <div class="card"><div class="card-icon">📈</div><div class="card-title">5. Trade With the Trend</div><div class="card-desc">Most reliable trades go with the prevailing trend. FXPulse skips sideways (ranging) markets entirely.</div><div class="card-tip">If FXPulse isn't trading, markets are ranging. That's correct behaviour.</div></div>
-        <div class="card"><div class="card-icon">😤</div><div class="card-title">6. No Emotional Trading</div><div class="card-desc">Fear causes early exits. Greed causes holding losers. FXPulse removes emotion completely.</div><div class="card-tip">If you want to manually close an FXPulse trade — stop. Trust the system.</div></div>
-        <div class="card"><div class="card-icon">📉</div><div class="card-title">7. Drawdown Is Normal</div><div class="card-desc">Every professional system has losing streaks. 10–15% drawdown is completely normal.</div><div class="card-tip">Judge FXPulse over 100+ trades, not 10.</div></div>
-        <div class="card"><div class="card-icon">🧪</div><div class="card-title">8. Demo Before Live</div><div class="card-desc">Psychology changes completely with real money. Run demo for minimum 4 weeks before going live.</div><div class="card-tip">You are currently in paper mode. This is exactly right.</div></div>
-        <div class="card"><div class="card-icon">📓</div><div class="card-title">9. Keep a Journal</div><div class="card-desc">Review your trade CSV every Sunday. FXPulse logs everything to C:\fxpulse\logs\</div><div class="card-tip">Data beats gut feeling. Every time.</div></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-label">Forex Glossary</div>
-      <h2>Key Terms Explained Simply</h2>
-      <div class="gloss-grid">
-        <div class="gloss-item"><div class="gloss-term">PIP</div><div class="gloss-def">Smallest price move. For EURUSD, 1 pip = 0.0001. On a standard lot, 1 pip = $10.</div></div>
-        <div class="gloss-item"><div class="gloss-term">SPREAD</div><div class="gloss-def">Difference between buy and sell price. Pepperstone from 0.0 pips raw.</div></div>
-        <div class="gloss-item"><div class="gloss-term">LOT SIZE</div><div class="gloss-def">Standard = 100,000 units. Mini = 10,000. Micro = 1,000. FXPulse uses micro lots.</div></div>
-        <div class="gloss-item"><div class="gloss-term">LEVERAGE</div><div class="gloss-def">Control more with less. Your 1:30 account means $1 controls $30 in the market.</div></div>
-        <div class="gloss-item"><div class="gloss-term">MARGIN</div><div class="gloss-def">Deposit broker holds for open trades. Keep margin level above 200% always.</div></div>
-        <div class="gloss-item"><div class="gloss-term">STOP LOSS</div><div class="gloss-def">Auto-closes losing trade at set price. FXPulse ALWAYS places one — never trades without it.</div></div>
-        <div class="gloss-item"><div class="gloss-term">TAKE PROFIT</div><div class="gloss-def">Auto-closes winning trade at your target. FXPulse targets 2R (twice the risk).</div></div>
-        <div class="gloss-item"><div class="gloss-term">DRAWDOWN</div><div class="gloss-def">Peak-to-trough account drop. 10% drawdown from $10K = account at $9K.</div></div>
-        <div class="gloss-item"><div class="gloss-term">BULL / BEAR</div><div class="gloss-def">Bullish = price going up (buy). Bearish = going down (sell). FXPulse trades both directions.</div></div>
-        <div class="gloss-item"><div class="gloss-term">RENKO</div><div class="gloss-def">Chart that filters noise — only prints a block when price moves a set amount. FXPulse entry tool.</div></div>
-        <div class="gloss-item"><div class="gloss-term">CONFLUENCE</div><div class="gloss-def">Multiple signals agreeing at once. FXPulse requires all 5 layers to agree before trading.</div></div>
-        <div class="gloss-item"><div class="gloss-term">R:R RATIO</div><div class="gloss-def">Risk to Reward. 1:2 means risk $50 to make $100. FXPulse minimum target is always 1:2.</div></div>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="section-label">Dos & Don'ts</div>
-      <h2>The Rules That Separate Winners from Losers</h2>
-      <div class="dd-grid">
-        <div class="dd-card">
-          <div class="dd-head do">✅ Always Do This</div>
-          <div class="dd-item"><span>✅</span> Let FXPulse run without interfering</div>
-          <div class="dd-item"><span>✅</span> Check the dashboard once daily</div>
-          <div class="dd-item"><span>✅</span> Keep MT5 open on the VPS at all times</div>
-          <div class="dd-item"><span>✅</span> Review weekly performance logs</div>
-          <div class="dd-item"><span>✅</span> Run demo for minimum 4 weeks</div>
-          <div class="dd-item"><span>✅</span> Keep the VPS running 24/7</div>
-          <div class="dd-item"><span>✅</span> Start live at 0.5% risk, not 1%</div>
-          <div class="dd-item"><span>✅</span> Trust that drawdown is normal</div>
-        </div>
-        <div class="dd-card">
-          <div class="dd-head dont">❌ Never Do This</div>
-          <div class="dd-item"><span>❌</span> Manually close FXPulse trades early</div>
-          <div class="dd-item"><span>❌</span> Set risk above 2% per trade</div>
-          <div class="dd-item"><span>❌</span> Disable the news filter</div>
-          <div class="dd-item"><span>❌</span> Go live before 4 weeks of demo</div>
-          <div class="dd-item"><span>❌</span> Trade money you cannot afford to lose</div>
-          <div class="dd-item"><span>❌</span> Panic during a losing streak</div>
-          <div class="dd-item"><span>❌</span> Chase losses by increasing lot size</div>
-          <div class="dd-item"><span>❌</span> Restart the bot during open trades</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
 </div>
 
 <footer>
-  <p>FXPulse AI Trading Bot &nbsp;|&nbsp; <a href="https://myforexpulse.com">myforexpulse.com</a> &nbsp;|&nbsp; Built by <a href="https://smartbotai.agency">SmartBot AI Agency</a>, Brisbane Australia</p>
-  <p style="margin-top:8px;color:#2a3a5a;font-size:11px">⚠️ Forex trading involves significant risk. This guide is educational only. Past performance is not indicative of future results.</p>
+  <p>FXPulse AI Trading Bot &nbsp;|&nbsp; <a href="https://myforexpulse.com">myforexpulse.com</a> &nbsp;|&nbsp; Support: <a href="https://smartbotai.agency/contact">smartbotai.agency</a> &nbsp;|&nbsp; +61 431 274 377</p>
+  <p style="margin-top:8px;color:#1e2d45;font-size:11px">⚠️ Forex trading involves significant risk. This guide is educational only and does not constitute financial advice. Only trade with money you can afford to lose.</p>
 </footer>
-
 <script>
-function showChapter(id, linkEl, tabIdx) {
-  document.querySelectorAll('.chapter').forEach(c => c.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (linkEl) linkEl.classList.add('active');
-  if (tabIdx !== undefined) document.querySelectorAll('.tab-btn')[tabIdx].classList.add('active');
+function show(id,i){
+  document.querySelectorAll('.ch').forEach(c=>c.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  document.querySelectorAll('.tab')[i].classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
-  return false;
 }
 </script>
 </body>
