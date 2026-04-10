@@ -10,7 +10,7 @@ define('BOT_FILE',    DATA_DIR . 'bot_state.json');
 define('LOGS_FILE',   DATA_DIR . 'activity.log');
 
 // Bot push API key — must match config.py SITEGROUND_API_KEY
-define('API_KEY', 'CHANGE_THIS_TO_A_SECRET_KEY_123');
+define('API_KEY', '0d070602123b2dbf102ab30f01d95f34cab48bf4e08cabd8dd5b53561d6cdac7');
 
 // Session timeout (30 min)
 define('SESSION_TIMEOUT', 1800);

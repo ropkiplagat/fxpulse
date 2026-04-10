@@ -99,8 +99,8 @@ WEB_DASHBOARD_PORT = 5000
 # === SiteGround Web Dashboard (friend/client can view from any browser) ===
 # 1. Upload deploy/receiver.php to your SiteGround public_html folder
 # 2. Set the URL and a secret key below (same key goes in receiver.php)
-SITEGROUND_API_URL = ""      # e.g. "https://yourdomain.com/fxpulse/api/bot_push.php"
-SITEGROUND_API_KEY = "CHANGE_THIS_TO_A_SECRET_KEY_123"
+SITEGROUND_API_URL = "https://myforexpulse.com/api/bot_push.php"
+SITEGROUND_API_KEY = "0d070602123b2dbf102ab30f01d95f34cab48bf4e08cabd8dd5b53561d6cdac7"
 
 # === Kelly Criterion Position Sizing ===
 USE_KELLY_SIZING = True      # Set False to use flat RISK_PERCENT instead
