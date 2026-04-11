@@ -25,15 +25,15 @@ function nav(array $user = []): void {
     $name   = htmlspecialchars($user['name']   ?? '');
     $role   = $user['role']   ?? '';
     $admin  = $role === ROLE_ADMIN
-        ? '<a href="/fxpulse/admin/" class="nav-link admin-link">Admin Panel</a>' : '';
+        ? '<a href="/admin/" class="nav-link admin-link">Admin Panel</a>' : '';
     echo <<<HTML
 <nav class="navbar">
-  <a href="/fxpulse/" class="nav-brand">&#9650; {$app}</a>
+  <a href="/" class="nav-brand">&#9650; {$app}</a>
   <div class="nav-links">
-    <a href="/fxpulse/dashboard.php" class="nav-link">Dashboard</a>
+    <a href="/dashboard.php" class="nav-link">Dashboard</a>
     {$admin}
     <span class="nav-user">&#128100; {$name}</span>
-    <a href="/fxpulse/logout.php" class="nav-link nav-logout">Sign Out</a>
+    <a href="/logout.php" class="nav-link nav-logout">Sign Out</a>
   </div>
 </nav>
 HTML;
