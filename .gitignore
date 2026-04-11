@@ -30,3 +30,4 @@ Thumbs.db
 # TensorFlow / Keras
 *.keras
 *.h5
+secrets.py

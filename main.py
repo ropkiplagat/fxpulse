@@ -336,8 +336,8 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
             _save_state(strength, top_pairs, account, win_probs,
                         regime_info, in_session, active_session, summary)
 
-            # Push to SiteGround dashboard for friend/client
-            if config.SITEGROUND_API_URL:
+            # Push to GitHub → SiteGround cron fetches it
+            if getattr(config, "GITHUB_TOKEN", ""):
                 import json, os
                 if os.path.exists(config.BOT_STATE_FILE):
                     with open(config.BOT_STATE_FILE) as f:
