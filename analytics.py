@@ -153,7 +153,7 @@ def compute_all(starting_balance: float = 10_000) -> dict:
         }
 
     curve       = equity_curve(df, starting_balance)
-    dd_pct, dd$ = max_drawdown(curve)
+    dd_pct, dd_usd = max_drawdown(curve)
     wins        = df[df["outcome"] == "win"]
     losses      = df[df["outcome"] == "loss"]
     consec      = consecutive_stats(df)
@@ -173,7 +173,7 @@ def compute_all(starting_balance: float = 10_000) -> dict:
         "profit_factor":        profit_factor(df),
         "expectancy_per_trade": expectancy(df),
         "max_drawdown_pct":     dd_pct,
-        "max_drawdown_usd":     dd$,
+        "max_drawdown_usd":     dd_usd,
         # Risk-adjusted returns
         "sharpe_ratio":         sharpe_ratio(df),
         "sortino_ratio":        sortino_ratio(df),
