@@ -24,6 +24,7 @@ import regime_detector as regime
 import news_filter as news
 import correlation_filter as corr
 import telegram_alerts as tg
+import telegram_bot as tg_bot
 import kelly_sizer as ks
 import siteground_api as sg
 import analytics
@@ -75,10 +76,11 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
     print("[BOT] Starting trading loop...")
     print(f"[BOT] Mode: {'PAPER TRADING' if config.PAPER_TRADING else 'LIVE TRADING'}")
 
-    # Start async executor and heartbeat
+    # Start async executor, heartbeat, and Telegram chatbot
     executor.start()
     heartbeat = wd.HeartbeatThread()
     heartbeat.start()
+    tg_bot.start()
 
     # Paper trader instance if in paper mode
     paper = pt.get_paper_trader() if config.PAPER_TRADING else None
@@ -105,6 +107,12 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                     summary["win_rate"], summary["total_pnl"]
                 )
                 last_daily_summary = today
+
+            # --- Telegram /stop command check ---
+            if tg_bot.trading_paused:
+                print("[BOT] Trading paused via Telegram /stop command. Waiting...")
+                time.sleep(30)
+                continue
 
             # --- Safety: Daily drawdown check ---
             if tm.check_daily_drawdown():
