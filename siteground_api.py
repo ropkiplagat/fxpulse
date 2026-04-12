@@ -81,6 +81,3 @@ def push_state(state: dict) -> bool:
     except Exception as e:
         print(f"[SG] Push failed: {e}")
         return False
-
-
-

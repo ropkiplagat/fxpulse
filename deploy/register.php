@@ -38,6 +38,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         create_user($username, $password, $email, $full_name);
         $success = true;
+
+        // Telegram notification to admin
+        $bot_token = '7618210192:AAH6GVQO4w6a9uHN9kTPr1xGpjF6KaLopWY';
+        $chat_id   = ''; // set after first /start message to bot
+        if ($bot_token && $chat_id) {
+            $msg = urlencode("🔔 FXPulse: New registration!\nName: $full_name\nUsername: @$username\nEmail: $email\nApprove at: https://myforexpulse.com/admin/");
+            @file_get_contents("https://api.telegram.org/bot{$bot_token}/sendMessage?chat_id={$chat_id}&text={$msg}");
+        }
     }
 }
 ?>
@@ -58,8 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <?php if ($success): ?>
       <div class="alert alert-success">
-        &#10003; Registration submitted! An admin will review your account shortly.
-        You'll be able to log in once approved.
+        &#10003; <strong>Registration submitted!</strong><br><br>
+        Your account is currently <strong>pending approval</strong>.<br>
+        You will be approved within <strong>5 minutes</strong>.<br><br>
+        Once approved, you can sign in using your username and password.
       </div>
       <a href="login.php" class="btn-full" style="margin-top:16px; display:block; text-align:center;">
         Back to Sign In
