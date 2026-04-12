@@ -868,7 +868,7 @@ footer {
     <div class="foot-col">
       <h4>Broker</h4>
       <a href="https://pepperstone.com" target="_blank" rel="noopener">Pepperstone</a>
-      <a href="#" target="_blank">MT5 Platform</a>
+      <a href="https://www.metatrader5.com/en/download" target="_blank" rel="noopener">MT5 Platform</a>
       <a href="#access">Demo Account</a>
     </div>
   </div>
