@@ -1,6 +1,7 @@
 """
 MT5 Connector — handles connection, data fetching, account info
 """
+import numpy.random  # must import before MetaTrader5 to prevent randbits error on Windows Server
 import MetaTrader5 as mt5
 import pandas as pd
 import numpy as np
