@@ -2,12 +2,25 @@
 Forex Bot Configuration
 Pepperstone MT5 — Demo account for testing
 """
+import os as _os
+
+def _load_env():
+    _path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), ".env")
+    if not _os.path.exists(_path):
+        return
+    with open(_path) as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _v = _line.split("=", 1)
+                _os.environ.setdefault(_k.strip(), _v.strip())
+
+_load_env()
 
 # === MT5 Connection ===
-# Leave blank — run: python security.py --setup to encrypt credentials securely
-MT5_LOGIN = 0          # Your Pepperstone demo account number
-MT5_PASSWORD = ""      # Your password (use security.py to encrypt)
-MT5_SERVER = "Pepperstone-Demo"  # Server name from MT5 login screen
+MT5_LOGIN    = int(_os.environ.get("MT5_LOGIN", "0"))
+MT5_PASSWORD = _os.environ.get("MT5_PASSWORD", "")
+MT5_SERVER   = _os.environ.get("MT5_SERVER", "Pepperstone-Demo")
 
 # === Paper Trading Mode ===
 PAPER_TRADING         = True    # START HERE — set False only after demo success
@@ -98,12 +111,11 @@ USE_CORRELATION_FILTER = True  # Block correlated duplicate trades
 WEB_DASHBOARD_PORT = 5000
 
 # === Direct push to SiteGround dashboard (no GitHub relay) ===
-# Must match define('API_KEY', ...) in deploy/includes/config.php
-API_KEY = "0d070602123b2dbf102ab30f01d95f34cab48bf4e08cabd8dd5b53561d6cdac7"
+API_KEY = _os.environ.get("API_KEY", "0d070602123b2dbf102ab30f01d95f34cab48bf4e08cabd8dd5b53561d6cdac7")
 
 # === GitHub Push — bot_state.json → repo → SiteGround cron fetches it ===
-GITHUB_REPO   = "ropkiplagat/fxpulse"
-GITHUB_TOKEN  = ""  # set via env var GITHUB_TOKEN if needed as fallback
+GITHUB_REPO  = "ropkiplagat/fxpulse"
+GITHUB_TOKEN = _os.environ.get("GITHUB_TOKEN", "")
 
 # === Kelly Criterion Position Sizing ===
 USE_KELLY_SIZING = True      # Set False to use flat RISK_PERCENT instead
