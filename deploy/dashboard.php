@@ -28,7 +28,17 @@ $equity_hist= $state['equity_history'] ?? [];
 $regime     = strtoupper($state['regime']      ?? 'UNKNOWN');
 $session    = strtoupper($state['session']     ?? 'NONE');
 $in_session = $state['in_session']   ?? false;
-$bot_running= $state['bot_running']  ?? false;
+// Bot is ONLINE if last data push was within the last 5 minutes
+$_bot_online = false;
+if ($updated) {
+    try {
+        $last_dt  = new DateTime($updated, new DateTimeZone('UTC'));
+        $now_dt   = new DateTime('now',    new DateTimeZone('UTC'));
+        $diff_sec = $now_dt->getTimestamp() - $last_dt->getTimestamp();
+        $_bot_online = ($diff_sec <= 300);
+    } catch (Exception $e) {}
+}
+$bot_running = $_bot_online;
 $paper_mode = $state['paper_trading'] ?? true;
 
 if ($strength) uasort($strength, fn($a,$b) => ($a['rank']??9) - ($b['rank']??9));

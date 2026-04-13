@@ -10,7 +10,7 @@ import base64
 from datetime import datetime, timezone
 import config
 
-PUSH_URL      = "https://myforexpulse.com/state_push.php"
+PUSH_URL      = "https://myforexpulse.com/api/bot_push.php"
 PUSH_INTERVAL = 60
 _last_push    = None
 _file_sha     = None
