@@ -22,6 +22,8 @@ PAIR_CURRENCIES = {
     "NZDJPY": ("NZD", "JPY"), "CHFJPY": ("CHF", "JPY"),
     "EURCAD": ("EUR", "CAD"), "GBPAUD": ("GBP", "AUD"),
     "AUDCAD": ("AUD", "CAD"), "AUDNZD": ("AUD", "NZD"),
+    # Gold — XAU strength vs USD
+    "XAUUSD": ("XAU", "USD"),
 }
 
 
@@ -163,7 +165,7 @@ def get_top_pairs(strength: dict, available_symbols: set) -> list:
         if base_cur not in strength or quote_cur not in strength:
             continue
 
-        # Check symbol available
+        # Check symbol available — Gold uses wider spread tolerance
         symbol = None
         for candidate in [base_pair + ".a", base_pair]:
             if candidate in available_symbols:

@@ -262,6 +262,14 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                 if not in_session:
                     continue
 
+                # --- Margin protection (30% free margin floor) ---
+                _acct = mt5c.get_account_info()
+                if _acct and _acct.equity > 0:
+                    _margin_ratio = _acct.margin_free / _acct.equity
+                    if _margin_ratio < config.MARGIN_MIN_FREE_RATIO:
+                        print(f"[BOT] Margin protection: free margin {_margin_ratio:.0%} < 30% — skipping all trades")
+                        break
+
                 # --- Execute ---
                 sl_distance = renko_setup.get("sl_distance", 0)
                 if sl_distance <= 0:

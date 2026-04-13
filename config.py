@@ -19,8 +19,8 @@ MINOR_CURRENCIES = ["EURGBP.a", "EURJPY.a", "GBPJPY.a", "AUDJPY.a", "CADJPY.a", 
 EXOTIC_CURRENCIES = ["USDTRY.a", "USDZAR.a", "USDMXN.a", "USDSEK.a", "USDNOK.a"]
 COMMODITIES      = ["XAUUSD.a", "US500.a", "NAS100.a", "UK100.a"]
 
-# 8 currencies used for strength calculation
-STRENGTH_CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "NZD", "CAD", "CHF"]
+# 9 assets used for strength calculation (8 forex + Gold)
+STRENGTH_CURRENCIES = ["USD", "EUR", "GBP", "JPY", "AUD", "NZD", "CAD", "CHF", "XAU"]
 
 # === Timeframes ===
 TF_FAST   = "M15"   # Signal timeframe
@@ -32,6 +32,7 @@ NUM_BARS  = 200     # Bars to fetch per symbol
 RISK_PERCENT          = 1.0    # % of account per trade
 MAX_DAILY_DRAWDOWN    = 5.0    # % — halt trading if exceeded
 MAX_SPREAD_PIPS       = 3.0    # Skip trade if spread > this
+MARGIN_MIN_FREE_RATIO = 0.30   # Skip all trades if free_margin/equity < 30%
 MAGIC_NUMBER          = 20001
 SLIPPAGE              = 10
 

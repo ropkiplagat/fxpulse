@@ -5,7 +5,6 @@ Prevents getting stopped out by NFP, CPI, Fed decisions, etc.
 """
 import requests
 from datetime import datetime, timezone, timedelta
-import MetaTrader5 as mt5
 import config
 
 # Block trading N minutes before and after high-impact news
@@ -23,33 +22,45 @@ _news_cache = []
 _cache_expiry = None
 
 
-def _fetch_mt5_calendar() -> list:
-    """Use MT5 built-in economic calendar (most reliable)."""
-    try:
-        now   = datetime.now(timezone.utc)
-        start = now - timedelta(hours=1)
-        end   = now + timedelta(hours=4)
+def _fetch_forexfactory_calendar() -> list:
+    """ForexFactory weekly calendar — most reliable free source."""
+    global _news_cache, _cache_expiry
+    now = datetime.now(timezone.utc)
 
-        events = mt5.calendar_get(start, end)
-        if not events:
+    if _cache_expiry and now < _cache_expiry and _news_cache:
+        return _news_cache
+
+    try:
+        url  = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+        resp = requests.get(url, timeout=8)
+        if resp.status_code != 200:
             return []
 
+        data   = resp.json()
         result = []
-        for e in events:
-            # MT5 calendar importance: 1=low, 2=medium, 3=high
-            if e.importance < 2:  # Only medium/high
+        for event in data:
+            if event.get("impact", "").lower() not in ("high", "medium"):
                 continue
-            event_time = datetime.fromtimestamp(e.time, tz=timezone.utc)
+            try:
+                event_time = datetime.fromisoformat(
+                    event["date"].replace("Z", "+00:00")
+                )
+            except Exception:
+                continue
             result.append({
                 "time":       event_time,
-                "currency":   e.currency,
-                "importance": e.importance,
-                "name":       e.name,
-                "source":     "MT5",
+                "currency":   event.get("currency", "").upper(),
+                "importance": 3 if event.get("impact", "").lower() == "high" else 2,
+                "name":       event.get("title", event.get("name", "")),
+                "source":     "ForexFactory",
             })
+
+        _news_cache   = result
+        _cache_expiry = now + timedelta(minutes=30)
+        print(f"[NEWS] ForexFactory: {len(result)} events loaded")
         return result
     except Exception as e:
-        print(f"[NEWS] MT5 calendar error: {e}")
+        print(f"[NEWS] ForexFactory error: {e}")
         return []
 
 
@@ -95,8 +106,8 @@ def _fetch_jblanked_calendar() -> list:
 
 
 def get_upcoming_events() -> list:
-    """Return upcoming high-impact events (next 4 hours)."""
-    events = _fetch_mt5_calendar()
+    """Return upcoming high-impact events. ForexFactory → JBlanked fallback."""
+    events = _fetch_forexfactory_calendar()
     if not events:
         events = _fetch_jblanked_calendar()
     return events
