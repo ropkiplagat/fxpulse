@@ -150,6 +150,10 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                 available = mt5c.get_available_symbols()
                 account   = mt5c.get_account_info()
                 _save_state({}, [], account, {}, regime_info, False, "none", perf.get_summary())
+                import json as _json, os as _os
+                if _os.path.exists(config.BOT_STATE_FILE):
+                    with open(config.BOT_STATE_FILE) as _f:
+                        sg.push_state(_json.load(_f))
                 time.sleep(LOOP_INTERVAL)
                 continue
 
@@ -360,12 +364,11 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
             _save_state(strength, top_pairs, account, win_probs,
                         regime_info, in_session, active_session, summary)
 
-            # Push to GitHub → SiteGround cron fetches it
-            if getattr(config, "GITHUB_TOKEN", ""):
-                import json, os
-                if os.path.exists(config.BOT_STATE_FILE):
-                    with open(config.BOT_STATE_FILE) as f:
-                        sg.push_state(json.load(f))
+            # Push state to dashboard (direct HTTPS — no token needed)
+            import json, os
+            if os.path.exists(config.BOT_STATE_FILE):
+                with open(config.BOT_STATE_FILE) as f:
+                    sg.push_state(json.load(f))
 
             # --- Analytics ---
             analytics_metrics = analytics.compute_all()
