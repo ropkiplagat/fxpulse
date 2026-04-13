@@ -7,6 +7,8 @@ Credentials go in C:\fxpulse\.env (one per line, KEY=value):
   TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxx
   TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxx
   TWILIO_FROM_NUMBER=+1xxxxxxxxxx
+
+.env overrides the defaults below. If .env is missing, defaults are used.
 """
 import os
 import json
@@ -80,13 +82,15 @@ def send_email_alert(last_updated: str) -> bool:
 
 
 def send_sms_alert(last_updated: str) -> bool:
-    """Send Twilio SMS alert to ALERT_PHONE."""
+    """Send Twilio SMS alert to ALERT_PHONE.
+    Credential lookup order: .env file → OS environment → skip.
+    """
     env         = _load_env()
-    account_sid = env.get("TWILIO_ACCOUNT_SID", "")
-    auth_token  = env.get("TWILIO_AUTH_TOKEN", "")
-    from_number = env.get("TWILIO_FROM_NUMBER", "")
+    account_sid = env.get("TWILIO_ACCOUNT_SID") or os.environ.get("TWILIO_ACCOUNT_SID", "")
+    auth_token  = env.get("TWILIO_AUTH_TOKEN")  or os.environ.get("TWILIO_AUTH_TOKEN",  "")
+    from_number = env.get("TWILIO_FROM_NUMBER") or os.environ.get("TWILIO_FROM_NUMBER", "")
     if not account_sid or not auth_token or not from_number:
-        print("[ALERT] Twilio credentials missing in .env — skipping SMS")
+        print("[ALERT] Twilio credentials missing in .env and environment — skipping SMS")
         return False
     try:
         url  = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
@@ -161,3 +165,12 @@ class OfflineAlertThread(threading.Thread):
 
     def stop(self):
         self._stop.set()
+
+
+if __name__ == "__main__":
+    print(f"[TEST] Sending test SMS to {ALERT_PHONE} ...")
+    ok = send_sms_alert("TEST — manual trigger")
+    if ok:
+        print("[TEST] SMS delivered successfully.")
+    else:
+        print("[TEST] SMS FAILED — check credentials / Twilio account.")
