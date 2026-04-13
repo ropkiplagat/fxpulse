@@ -1,7 +1,8 @@
 """
-SiteGround API Bridge — bot pushes bot_state.json to GitHub repo.
-SiteGround cron_pull.php fetches raw file every minute → writes bot_state.json locally.
-Uses 'repo' scope token (already configured) — no Gist needed.
+SiteGround API Bridge.
+Strategy:
+  1. Try direct HTTPS POST to myforexpulse.com/state_push.php
+  2. If that fails, fall back to GitHub relay (cron pulls every minute)
 """
 import requests
 import json
@@ -9,75 +10,84 @@ import base64
 from datetime import datetime, timezone
 import config
 
-PUSH_INTERVAL = 60  # seconds between pushes
-_last_push = None
-_file_sha = None  # cached SHA for GitHub API updates
+PUSH_URL      = "https://myforexpulse.com/state_push.php"
+PUSH_INTERVAL = 60
+_last_push    = None
+_file_sha     = None
 
-REPO      = "ropkiplagat/fxpulse"
-FILE_PATH = "bot_state.json"
-RAW_URL   = f"https://raw.githubusercontent.com/{REPO}/main/{FILE_PATH}"
-API_URL   = f"https://api.github.com/repos/{REPO}/contents/{FILE_PATH}"
+# GitHub fallback
+REPO     = "ropkiplagat/fxpulse"
+API_URL  = f"https://api.github.com/repos/{REPO}/contents/bot_state.json"
 
 
-def _get_headers():
-    token = getattr(config, "GITHUB_TOKEN", "")
+def _gh_headers():
     return {
-        "Authorization": f"token {token}",
+        "Authorization": f"token {getattr(config, 'GITHUB_TOKEN', '')}",
         "Accept":        "application/vnd.github.v3+json",
         "User-Agent":    "FXPulse-Bot/1.0",
     }
 
 
 def _get_sha() -> str:
-    """Fetch current SHA of bot_state.json in repo (needed for updates)."""
     global _file_sha
     if _file_sha:
         return _file_sha
     try:
-        resp = requests.get(API_URL, headers=_get_headers(), timeout=10)
-        if resp.status_code == 200:
-            _file_sha = resp.json().get("sha", "")
-        # 404 = file doesn't exist yet (first push) — that's fine
+        r = requests.get(API_URL, headers=_gh_headers(), timeout=10)
+        if r.status_code == 200:
+            _file_sha = r.json().get("sha", "")
     except Exception:
         pass
     return _file_sha or ""
 
 
-def push_state(state: dict) -> bool:
-    """
-    Push bot state to GitHub repo as bot_state.json.
-    SiteGround cron_pull.php fetches it every minute.
-    Returns True on success.
-    """
-    global _last_push, _file_sha
+def _push_direct(state: dict) -> bool:
+    """POST directly to SiteGround endpoint."""
+    try:
+        payload = {
+            "api_key": getattr(config, "API_KEY", ""),
+            "data":    json.dumps(state, default=str),
+        }
+        r = requests.post(PUSH_URL, json=payload, timeout=10)
+        if r.status_code == 200 and r.text.strip() == "OK":
+            print("[SG] Direct push OK")
+            return True
+        print(f"[SG] Direct push failed: {r.status_code} {r.text[:100]}")
+        return False
+    except Exception as e:
+        print(f"[SG] Direct push error: {e}")
+        return False
 
+
+def _push_github(state: dict) -> bool:
+    """PUT to GitHub repo as fallback."""
+    global _file_sha, _last_push
     token = getattr(config, "GITHUB_TOKEN", "")
     if not token:
         return False
-
     try:
-        content = base64.b64encode(
-            json.dumps(state, default=str).encode()
-        ).decode()
-
-        sha = _get_sha()
-        payload = {
-            "message": "bot state update",
-            "content": content,
-        }
+        content = base64.b64encode(json.dumps(state, default=str).encode()).decode()
+        sha     = _get_sha()
+        payload = {"message": f"state {datetime.now(timezone.utc).strftime('%H:%M:%S')}", "content": content}
         if sha:
-            payload["sha"] = sha  # required for updates; omit for first create
-
-        resp = requests.put(API_URL, headers=_get_headers(), json=payload, timeout=15)
-
-        if resp.status_code in (200, 201):
-            _file_sha = resp.json()["content"]["sha"]  # cache new SHA
-            _last_push = datetime.now(timezone.utc)
+            payload["sha"] = sha
+        r = requests.put(API_URL, headers=_gh_headers(), json=payload, timeout=15)
+        if r.status_code in (200, 201):
+            _file_sha = r.json()["content"]["sha"]
+            print("[SG] GitHub push OK")
             return True
-
-        print(f"[SG] Push failed: {resp.status_code} {resp.text[:200]}")
+        if r.status_code == 409:
+            _file_sha = None
+        print(f"[SG] GitHub push failed: {r.status_code}")
         return False
-
     except Exception as e:
-        print(f"[SG] Push failed: {e}")
+        print(f"[SG] GitHub push error: {e}")
         return False
+
+
+def push_state(state: dict) -> bool:
+    global _last_push
+    ok = _push_direct(state) or _push_github(state)
+    if ok:
+        _last_push = datetime.now(timezone.utc)
+    return ok
