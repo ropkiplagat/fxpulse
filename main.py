@@ -10,8 +10,15 @@ import sys
 import time
 import json
 import os
+import ctypes
 import traceback
 from datetime import datetime, timezone, timedelta
+
+# Keep console window visible and titled — never minimizes on VPS
+try:
+    ctypes.windll.kernel32.SetConsoleTitleW("FXPulse Bot — LIVE")
+except Exception:
+    pass
 import mt5_connector as mt5c
 import currency_strength as cs
 import renko as rk
@@ -29,6 +36,7 @@ import kelly_sizer as ks
 import siteground_api as sg
 import analytics
 import watchdog as wd
+import alerts
 import executor
 import paper_trader as pt
 import security
@@ -48,13 +56,15 @@ LOOP_INTERVAL = 60  # seconds between scans
 
 
 def _save_state(strength, top_pairs, account_info, win_probs,
-                regime_info, in_session, session_name, performance):
+                regime_info, in_session, session_name, performance,
+                bot_running: bool = True):
     """Write bot state to JSON for web dashboard."""
     try:
         os.makedirs("logs", exist_ok=True)
         acc = account_info
         state = {
             "updated":         datetime.now(timezone.utc).isoformat(),
+            "bot_running":     bot_running,
             "account":         {"balance": acc.balance, "equity": acc.equity} if acc else {},
             "strength":        strength,
             "top_pairs":       top_pairs,
@@ -66,7 +76,11 @@ def _save_state(strength, top_pairs, account_info, win_probs,
             "performance":     performance,
             "news":            news.get_news_summary() if config.USE_NEWS_FILTER else [],
         }
+        # Write to logs/ (primary) AND root dir (dashboard reads from here)
         with open(config.BOT_STATE_FILE, "w") as f:
+            json.dump(state, f, default=str)
+        root_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "bot_state.json")
+        with open(root_file, "w") as f:
             json.dump(state, f, default=str)
     except Exception as e:
         print(f"[STATE] Save error: {e}")
@@ -76,11 +90,13 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
     print("[BOT] Starting trading loop...")
     print(f"[BOT] Mode: {'PAPER TRADING' if config.PAPER_TRADING else 'LIVE TRADING'}")
 
-    # Start async executor, heartbeat, and Telegram chatbot
+    # Start async executor, heartbeat, Telegram chatbot, and offline alert watchdog
     executor.start()
     heartbeat = wd.HeartbeatThread()
     heartbeat.start()
     tg_bot.start()
+    alert_thread = alerts.OfflineAlertThread(config.BOT_STATE_FILE)
+    alert_thread.start()
 
     # Paper trader instance if in paper mode
     paper = pt.get_paper_trader() if config.PAPER_TRADING else None
