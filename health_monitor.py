@@ -19,6 +19,20 @@ import urllib.error
 import subprocess
 from datetime import datetime, timezone
 
+# ── Load .env first so credentials are available ──────────────────────────────
+def _load_env():
+    _path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if not os.path.exists(_path):
+        return
+    with open(_path) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
+_load_env()
+
 # ── Config ────────────────────────────────────────────────────────────────────
 GITHUB_REPO   = "ropkiplagat/fxpulse"
 GITHUB_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
@@ -30,7 +44,6 @@ LOG_FILE      = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs",
 
 STALE_ALERT_MIN     = 5    # SMS at 5 min stale
 STALE_ESCALATE_MIN  = 10   # Escalation SMS at 10 min
-STATE_FILE_URL      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main/bot_state.json"
 COMMITS_API_URL     = f"https://api.github.com/repos/{GITHUB_REPO}/commits?per_page=5"
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -63,15 +76,16 @@ def send_sms(body: str) -> bool:
 
 # ── GitHub checks ─────────────────────────────────────────────────────────────
 def get_bot_state() -> dict:
-    """Fetch bot_state.json direct from GitHub raw URL."""
+    """Fetch bot_state.json from SiteGround (source of truth for dashboard)."""
     try:
-        req = urllib.request.Request(STATE_FILE_URL)
-        if GITHUB_TOKEN:
-            req.add_header("Authorization", f"token {GITHUB_TOKEN}")
+        req = urllib.request.Request(
+            "https://myforexpulse.com/data/bot_state.json",
+            headers={"User-Agent": "FXPulse-Monitor/1.0"}
+        )
         with urllib.request.urlopen(req, timeout=10) as r:
             return json.loads(r.read().decode())
     except Exception as e:
-        _log(f"[GITHUB] Failed to fetch bot_state.json: {e}")
+        _log(f"[STATE] Failed to fetch from SiteGround: {e}")
         return {}
 
 def get_last_commit_age_min() -> float:
