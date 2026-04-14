@@ -2,7 +2,8 @@
 .credentials.enc
 .secret.key
 
-# Bot data & models
+# Bot data & models — runtime files, not code
+bot_state.json
 models/
 logs/
 deploy/data/
