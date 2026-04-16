@@ -91,3 +91,44 @@ def push_state(state: dict) -> bool:
     if ok:
         _last_push = datetime.now(timezone.utc)
     return ok
+
+
+# Per-user SHA cache
+_user_shas: dict = {}
+
+def push_user_state(username: str, state: dict) -> bool:
+    """Push per-user MT5 state to GitHub → SiteGround cron pulls it."""
+    token = getattr(config, "GITHUB_TOKEN", "")
+    if not token:
+        return False
+    path    = f"user_states/{username}.json"
+    api_url = f"https://api.github.com/repos/{REPO}/contents/{path}"
+    try:
+        content = base64.b64encode(json.dumps(state, default=str).encode()).decode()
+        sha     = _user_shas.get(username)
+        if not sha:
+            try:
+                r = requests.get(api_url, headers=_gh_headers(), timeout=8)
+                if r.status_code == 200:
+                    sha = r.json().get("sha", "")
+                    _user_shas[username] = sha
+            except Exception:
+                pass
+        payload = {
+            "message": f"user state {username} {datetime.now(timezone.utc).strftime('%H:%M:%S')}",
+            "content": content,
+        }
+        if sha:
+            payload["sha"] = sha
+        r = requests.put(api_url, headers=_gh_headers(), json=payload, timeout=15)
+        if r.status_code in (200, 201):
+            _user_shas[username] = r.json()["content"]["sha"]
+            print(f"[SG] User state push OK — {username}")
+            return True
+        if r.status_code == 409:
+            _user_shas.pop(username, None)
+        print(f"[SG] User state push failed {username}: {r.status_code}")
+        return False
+    except Exception as e:
+        print(f"[SG] User state push error {username}: {e}")
+        return False
