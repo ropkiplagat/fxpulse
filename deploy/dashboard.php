@@ -265,7 +265,7 @@ tr:last-child td{border-bottom:none;}
       <div class="step">
         <div class="step-num">Step 2 &mdash; Done</div>
         <div class="step-title">&#10003; MT5 connected</div>
-        <div class="step-desc">Your Pepperstone account is linked. <a href="connect-mt5.php" style="color:#58a6ff;">Review &rarr;</a></div>
+        <div class="step-desc">Your Pepperstone account is linked. <a href="guide.html" style="color:#58a6ff;">Review &rarr;</a></div>
       </div>
       <div class="step">
         <div class="step-num">Step 3 &mdash; Live now</div>
