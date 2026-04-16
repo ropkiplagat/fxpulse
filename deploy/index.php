@@ -836,7 +836,7 @@ footer {
     </details>
     <details>
       <summary>Can I view results without running the bot?</summary>
-      <p>Yes. The web dashboard at myforexpulse.com shows live data pushed from the bot. Viewer accounts can monitor all performance metrics, open trades, and currency rankings without any access to the bot configuration.</p>
+      <p>Yes. The web dashboard at <a href="dashboard.php" style="color:var(--accent);">myforexpulse.com</a> shows live data pushed from the bot. Viewer accounts can monitor all performance metrics, open trades, and currency rankings without any access to the bot configuration.</p>
     </details>
     <details>
       <summary>How long before I can go live?</summary>
