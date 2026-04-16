@@ -27,21 +27,35 @@ function email_taken(string $email): bool {
     return false;
 }
 
+function user_count(): int {
+    return count(load_users());
+}
+
+function at_capacity(): bool {
+    // Admin account doesn't count toward the 100-user limit
+    $users = load_users();
+    $non_admin = array_filter($users, fn($u) => ($u['role'] ?? '') !== ROLE_ADMIN);
+    return count($non_admin) >= MAX_USERS;
+}
+
 function create_user(string $username, string $password, string $email, string $full_name): array {
     $users = load_users();
+    // First 100 non-admin users are auto-approved — no admin action needed
+    $status      = STATUS_APPROVED;
+    $approved_at = date('c');
     $users[$username] = [
         'username'   => $username,
         'hash'       => password_hash($password, PASSWORD_DEFAULT),
         'email'      => $email,
         'full_name'  => $full_name,
         'role'       => ROLE_VIEWER,
-        'status'     => STATUS_PENDING,
+        'status'     => $status,
         'created_at' => date('c'),
-        'approved_at'=> null,
+        'approved_at'=> $approved_at,
         'last_login' => null,
     ];
     save_users($users);
-    activity_log("REGISTER: $username ($email) — awaiting approval");
+    activity_log("REGISTER: $username ($email) — auto-approved (founding member)");
     return $users[$username];
 }
 
