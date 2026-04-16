@@ -6,7 +6,17 @@ session_init();
 require_login();
 
 $user  = current_user();
-$state = json_decode(file_exists(BOT_FILE) ? file_get_contents(BOT_FILE) : '{}', true) ?? [];
+
+// Admin sees master bot state; each subscriber sees their own copied account state
+if ($user['role'] === ROLE_ADMIN) {
+    $state_file = BOT_FILE;
+} else {
+    $user_state_file = USER_STATES_DIR . $user['username'] . '.json';
+    $state_file      = file_exists($user_state_file) ? $user_state_file : null;
+}
+$state = ($state_file && file_exists($state_file))
+    ? (json_decode(file_get_contents($state_file), true) ?? [])
+    : [];
 
 $updated    = $state['updated']      ?? null;
 $account    = $state['account']      ?? [];
@@ -28,7 +38,7 @@ $equity_hist= $state['equity_history'] ?? [];
 $regime     = strtoupper($state['regime']      ?? 'UNKNOWN');
 $session    = strtoupper($state['session']     ?? 'NONE');
 $in_session = $state['in_session']   ?? false;
-// Bot is ONLINE if last data push was within the last 5 minutes
+
 $_bot_online = false;
 if ($updated) {
     try {
@@ -39,19 +49,23 @@ if ($updated) {
     } catch (Exception $e) {}
 }
 $bot_running = $_bot_online;
-$paper_mode = $state['paper_trading'] ?? true;
+$paper_mode  = $state['paper_trading'] ?? true;
 
 if ($strength) uasort($strength, fn($a,$b) => ($a['rank']??9) - ($b['rank']??9));
 
-$age_sec = $updated ? (time() - strtotime($updated)) : null;
-$stale   = ($age_sec === null || $age_sec > 120);
+$age_sec   = $updated ? (time() - strtotime($updated)) : null;
+$stale     = ($age_sec === null || $age_sec > 120);
 
-// Prepare JS data
+// State helpers
+$is_new_user = ($updated === null && $balance === 0 && empty($strength));
+$off_session = ($bot_running && !$in_session);
+
+// JS data
 $js_strength_labels = json_encode(array_keys($strength));
 $js_strength_scores = json_encode(array_map(fn($s) => round($s['score'] ?? 0, 4), $strength));
 $js_strength_colors = json_encode(array_map(fn($s) => ($s['score'] ?? 0) >= 0 ? '#3fb950' : '#f85149', $strength));
-$js_equity = json_encode(array_map(fn($e) => $e['equity'] ?? 0, $equity_hist));
-$js_equity_labels = json_encode(array_map(fn($e) => $e['time'] ?? '', $equity_hist));
+$js_equity          = json_encode(array_map(fn($e) => $e['equity'] ?? 0, $equity_hist));
+$js_equity_labels   = json_encode(array_map(fn($e) => $e['time'] ?? '', $equity_hist));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -59,7 +73,7 @@ $js_equity_labels = json_encode(array_map(fn($e) => $e['time'] ?? '', $equity_hi
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="refresh" content="30">
-<title>FXPulse — Live Dashboard</title>
+<title>FXPulse &mdash; Live Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1" crossorigin="anonymous"></script>
 <style>
 :root {
@@ -103,6 +117,33 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 /* STALE */
 .stale{background:#2d1f0a;border:1px solid #6e3c0e;color:var(--yellow);
   border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:.85em;display:flex;align-items:center;gap:8px;}
+
+/* ONBOARDING */
+.onboard{background:#0d1f0d;border:1px solid #238636;border-radius:10px;padding:20px 24px;margin-bottom:20px;}
+.onboard h3{color:#3fb950;font-size:1em;margin-bottom:10px;}
+.onboard p{color:#8b949e;font-size:.85em;line-height:1.65;}
+.onboard p+p{margin-top:8px;}
+.onboard .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:14px;}
+.onboard .step{background:#0f2d15;border:1px solid #238636;border-radius:8px;padding:14px 16px;}
+.onboard .step-num{color:#3fb950;font-size:.7em;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.onboard .step-title{color:#e6edf3;font-size:.9em;font-weight:600;margin-bottom:4px;}
+.onboard .step-desc{color:#8b949e;font-size:.78em;line-height:1.5;}
+
+/* OFF-SESSION */
+.off-session{background:#1a1600;border:1px solid #6e3c0e;border-radius:10px;padding:16px 20px;margin-bottom:20px;
+  display:flex;align-items:center;gap:14px;}
+.off-session-icon{font-size:1.4em;flex-shrink:0;}
+.off-session-text{color:#d29922;font-size:.85em;line-height:1.6;}
+.off-session-text strong{color:#f0b429;}
+
+/* EXPLAIN CHIPS */
+.explain-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.explain-chip{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:5px 14px;
+  display:flex;align-items:center;gap:7px;font-size:.75em;color:var(--muted);}
+.chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dot-green{background:var(--green);}
+.dot-blue{background:var(--blue);}
+.dot-yellow{background:var(--yellow);}
 
 /* STATUS BAR */
 .status-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
@@ -185,7 +226,7 @@ tr:last-child td{border-bottom:none;}
   padding:8px 12px;border-radius:6px;margin-bottom:6px;background:var(--bg-card2);border:1px solid var(--border2);}
 
 /* NO DATA */
-.no-data{color:var(--muted);text-align:center;padding:30px 0;font-size:.88em;}
+.no-data{color:var(--muted);text-align:center;padding:30px 0;font-size:.88em;line-height:1.7;}
 
 /* FOOTER */
 .foot{color:var(--muted);font-size:.72em;text-align:center;margin-top:8px;padding-bottom:24px;}
@@ -211,20 +252,72 @@ tr:last-child td{border-bottom:none;}
 
 <div class="body">
 
-  <?php if ($stale): ?>
+  <?php if ($is_new_user): ?>
+  <div class="onboard">
+    <h3>Welcome to FXPulse, <?= htmlspecialchars($user['name']) ?>! Your account is live.</h3>
+    <p>The AI is scanning 28 currency pairs right now. <strong style="color:#e6edf3">Analysis appears below within 60 seconds</strong> &mdash; no action needed from you.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">Step 1 &mdash; Done</div>
+        <div class="step-title">&#10003; Account approved</div>
+        <div class="step-desc">You are signed in and verified.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 2 &mdash; Done</div>
+        <div class="step-title">&#10003; MT5 connected</div>
+        <div class="step-desc">Your Pepperstone account is linked. <a href="connect-mt5.php" style="color:#58a6ff;">Review &rarr;</a></div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 3 &mdash; Live now</div>
+        <div class="step-title">Watch the signals</div>
+        <div class="step-desc">Currency strength, regime, and top pair setups update every 60 seconds automatically.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 4 &mdash; Your action</div>
+        <div class="step-title">Trade on your MT5</div>
+        <div class="step-desc">When AI confidence &ge;65% shows in Top Pairs, open that trade on your Pepperstone 50k demo terminal.</div>
+      </div>
+    </div>
+    <p style="margin-top:14px;font-size:.78em;border-top:1px solid #238636;padding-top:12px;">
+      <strong style="color:#e6edf3">How it works:</strong> The AI engine runs on the master trading account and analyses all 28 pairs every minute.
+      You see those signals here in real time. Execute them on your own Pepperstone MT5 to grow your 50,000 demo balance using the same AI edge.
+    </p>
+  </div>
+  <?php endif; ?>
+
+  <?php if ($off_session): ?>
+  <div class="off-session">
+    <span class="off-session-icon">&#128307;</span>
+    <div class="off-session-text">
+      <strong>Markets are off-session right now</strong> &mdash; no new trade setups until the next active session.
+      Currency strength and regime analysis below are still live and updating. The bot resumes signal generation automatically at session open.
+    </div>
+  </div>
+  <?php endif; ?>
+
+  <?php if ($stale && !$is_new_user): ?>
   <div class="stale">
     &#9888;
-    <?= $updated ? 'Data is '.round($age_sec/60).' min old — bot may be offline or MT5 disconnected.' : 'No data received yet — waiting for bot to connect.' ?>
+    <?= $updated ? 'Data is '.round($age_sec/60).' min old &mdash; bot may be offline or MT5 disconnected.' : 'Waiting for first data push from bot&hellip;' ?>
+  </div>
+  <?php endif; ?>
+
+  <?php if (!$is_new_user && $bot_running): ?>
+  <div class="explain-row">
+    <div class="explain-chip"><span class="chip-dot dot-green"></span>AI scanning 28 pairs &mdash; updates every 60s</div>
+    <div class="explain-chip"><span class="chip-dot dot-blue"></span>Session: <?= htmlspecialchars($session ?: 'detecting') ?></div>
+    <div class="explain-chip"><span class="chip-dot dot-<?= strpos($regime,'TREND')!==false ? 'green' : 'yellow' ?>"></span>Regime: <?= htmlspecialchars($regime) ?></div>
+    <div class="explain-chip"><span class="chip-dot dot-<?= $paper_mode ? 'yellow' : 'green' ?>"></span><?= $paper_mode ? 'Paper mode &mdash; no real money' : 'Live trading active' ?></div>
   </div>
   <?php endif; ?>
 
   <!-- Status Pills -->
   <div class="status-bar">
     <span class="pill <?= $bot_running ? 'pill-green' : 'pill-red' ?>">
-      <?= $bot_running ? '● RUNNING' : '● OFFLINE' ?>
+      <?= $bot_running ? '&#9679; BOT RUNNING' : '&#9679; BOT OFFLINE' ?>
     </span>
     <span class="pill <?= $paper_mode ? 'pill-yellow' : 'pill-green' ?>">
-      <?= $paper_mode ? 'PAPER MODE' : '● LIVE MODE' ?>
+      <?= $paper_mode ? 'PAPER MODE' : '&#9679; LIVE MODE' ?>
     </span>
     <span class="pill <?= $in_session ? 'pill-green' : 'pill-red' ?>">
       <?= $in_session ? 'IN SESSION' : 'OFF SESSION' ?>
@@ -242,7 +335,7 @@ tr:last-child td{border-bottom:none;}
     <div class="kpi <?= $balance > 0 ? 'kpi-green' : 'kpi-white' ?>">
       <div class="kpi-label">Balance</div>
       <div class="kpi-value">$<?= number_format($balance,2) ?></div>
-      <div class="kpi-sub">Account funds</div>
+      <div class="kpi-sub">Master AI account</div>
     </div>
     <div class="kpi <?= $equity >= $balance ? 'kpi-green' : 'kpi-red' ?>">
       <div class="kpi-label">Equity</div>
@@ -261,7 +354,7 @@ tr:last-child td{border-bottom:none;}
     </div>
     <div class="kpi kpi-red">
       <div class="kpi-label">Max Drawdown</div>
-      <div class="kpi-value"><?= $dd > 0 ? round($dd,2).'%' : '—' ?></div>
+      <div class="kpi-value"><?= $dd > 0 ? round($dd,2).'%' : '&mdash;' ?></div>
       <div class="kpi-sub">Peak-to-trough</div>
     </div>
     <div class="kpi kpi-blue">
@@ -274,21 +367,21 @@ tr:last-child td{border-bottom:none;}
   <!-- Charts Row -->
   <div class="grid2">
 
-    <!-- Currency Strength Chart -->
     <div class="card">
       <div class="card-title">Currency Strength Rankings</div>
       <?php if (empty($strength)): ?>
-        <div class="no-data">No data — waiting for bot</div>
+        <div class="no-data">
+          <?= $bot_running ? '&#128307; Strength analysis loading &mdash; arrives with next bot cycle (~60s)' : '&#9888; Bot offline &mdash; strength unavailable' ?>
+        </div>
       <?php else: ?>
         <div class="chart-wrap"><canvas id="strengthChart"></canvas></div>
       <?php endif; ?>
     </div>
 
-    <!-- Equity Curve -->
     <div class="card">
       <div class="card-title">Equity Curve</div>
       <?php if (empty($equity_hist)): ?>
-        <div class="no-data">No history yet — builds as bot trades</div>
+        <div class="no-data">Equity curve builds once the bot begins trading &mdash; check back after the first London session</div>
       <?php else: ?>
         <div class="chart-wrap"><canvas id="equityChart"></canvas></div>
       <?php endif; ?>
@@ -299,14 +392,24 @@ tr:last-child td{border-bottom:none;}
   <!-- Pairs + Trades -->
   <div class="grid2">
 
-    <!-- Top Pair Opportunities -->
     <div class="card">
       <div class="card-title">
         Top Pair Opportunities
         <span class="badge pill-blue"><?= count($pairs) ?> pairs</span>
       </div>
       <?php if (empty($pairs)): ?>
-        <div class="no-data">No valid pairs above threshold</div>
+        <div class="no-data">
+          <?php if (!$bot_running): ?>
+            &#9888; Bot offline &mdash; no signals available
+          <?php elseif (!$in_session): ?>
+            &#128307; Off-session &mdash; signals resume when London or NY opens
+          <?php elseif ($regime === 'RANGING'): ?>
+            &#8987; Market is ranging &mdash; AI holding for trending conditions.<br>
+            <span style="font-size:.82em;">This is normal. No edge in a ranging market. Bot waits.</span>
+          <?php else: ?>
+            Scanning &mdash; pairs appear when AI confidence exceeds threshold
+          <?php endif; ?>
+        </div>
       <?php else: ?>
         <?php foreach ($pairs as $i => $p):
           $sym  = $p['symbol']    ?? '';
@@ -330,7 +433,6 @@ tr:last-child td{border-bottom:none;}
       <?php endif; ?>
     </div>
 
-    <!-- Open Trades -->
     <div class="card">
       <div class="card-title">
         Open Trades
@@ -341,11 +443,21 @@ tr:last-child td{border-bottom:none;}
         <?php endif; ?>
       </div>
       <?php if (empty($trades)): ?>
-        <div class="no-data">No open positions</div>
+        <div class="no-data">
+          <?php if (!$bot_running): ?>
+            &#9888; Bot offline
+          <?php elseif (!$in_session): ?>
+            No positions &mdash; bot holds during off-session hours
+          <?php elseif ($regime === 'RANGING'): ?>
+            No positions &mdash; bot skips entries in ranging markets
+          <?php else: ?>
+            No open positions &mdash; waiting for a qualifying setup
+          <?php endif; ?>
+        </div>
       <?php else: ?>
         <?php foreach ($trades as $t):
-          $tpnl = $t['profit'] ?? 0;
           $ttype = strtoupper($t['type'] ?? '');
+          $tpnl  = $t['profit'] ?? 0;
         ?>
         <div class="trade-row">
           <div style="display:flex;align-items:center;gap:10px;">
@@ -363,20 +475,19 @@ tr:last-child td{border-bottom:none;}
 
   </div>
 
-  <!-- Currency Strength Detail + News -->
+  <!-- Strength Detail + News -->
   <div class="grid2">
 
-    <!-- Strength Detail Table -->
     <div class="card">
       <div class="card-title">Strength Detail</div>
       <?php if (empty($strength)): ?>
-        <div class="no-data">No data</div>
+        <div class="no-data"><?= $bot_running ? '&#128307; Loading&hellip;' : '&#9888; Bot offline' ?></div>
       <?php else: ?>
         <?php foreach ($strength as $cur => $s):
           $score = $s['score'] ?? 0;
           $rank  = $s['rank']  ?? 9;
           $slope = $s['slope'] ?? 'flat';
-          $arrow = $slope === 'up' ? '▲' : ($slope === 'down' ? '▼' : '─');
+          $arrow = $slope === 'up' ? '&#9650;' : ($slope === 'down' ? '&#9660;' : '&mdash;');
           $barPct= min(abs($score) * 35, 100);
           $cls   = $score >= 0 ? 'green' : 'red';
         ?>
@@ -396,11 +507,10 @@ tr:last-child td{border-bottom:none;}
       <?php endif; ?>
     </div>
 
-    <!-- News Filter -->
     <div class="card">
       <div class="card-title">News Events</div>
       <?php if (empty($news)): ?>
-        <div class="no-data">No upcoming high-impact events</div>
+        <div class="no-data">No high-impact events in the next 24h &mdash; clean trading window</div>
       <?php else: ?>
         <?php foreach ($news as $n):
           $impact = $n['impact'] ?? '';
@@ -420,15 +530,14 @@ tr:last-child td{border-bottom:none;}
 
   </div>
 
-</div><!-- /body -->
+</div>
 
 <p class="foot">
-  FXPulse &nbsp;·&nbsp; Auto-refreshes every 30s
-  <?php if($updated): ?>&nbsp;·&nbsp; Last data: <?= date('Y-m-d H:i:s', strtotime($updated)) ?> UTC<?php endif; ?>
+  FXPulse &nbsp;&middot;&nbsp; Auto-refreshes every 30s
+  <?php if($updated): ?>&nbsp;&middot;&nbsp; Last data: <?= date('Y-m-d H:i:s', strtotime($updated)) ?> UTC<?php endif; ?>
 </p>
 
 <script>
-// Currency Strength Chart
 <?php if (!empty($strength)): ?>
 (function(){
   const labels = <?= $js_strength_labels ?>;
@@ -463,7 +572,6 @@ tr:last-child td{border-bottom:none;}
 })();
 <?php endif; ?>
 
-// Equity Curve
 <?php if (!empty($equity_hist)): ?>
 (function(){
   const labels = <?= $js_equity_labels ?>;
@@ -471,36 +579,33 @@ tr:last-child td{border-bottom:none;}
   const ctx = document.getElementById('equityChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
-    data:{
+    data: {
       labels,
       datasets:[{
-        label:'Equity',
+        label: 'Equity',
         data,
-        borderColor:'#58a6ff',
-        backgroundColor:'rgba(88,166,255,0.08)',
-        borderWidth:2,
-        fill:true,
-        tension:0.3,
-        pointRadius:0,
-        pointHoverRadius:4,
+        borderColor: '#3fb950',
+        backgroundColor: 'rgba(63,185,80,.08)',
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: true,
+        tension: 0.3,
       }]
     },
     options:{
       responsive:true, maintainAspectRatio:false,
       animation:false,
-      interaction:{mode:'index',intersect:false},
       plugins:{ legend:{display:false},
-        tooltip:{ callbacks:{ label: ctx => '$'+ctx.parsed.y.toFixed(2) }}},
+        tooltip:{ callbacks:{ label: ctx => '$' + ctx.parsed.y.toFixed(2) }}},
       scales:{
         x:{ display:false },
         y:{ grid:{color:'#21262d'}, ticks:{color:'#8b949e',
-          callback: v => '$'+v.toFixed(0)}}
+          callback: v => '$' + v.toLocaleString()}}
       }
     }
   });
 })();
 <?php endif; ?>
 </script>
-
 </body>
 </html>
