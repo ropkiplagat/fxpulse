@@ -210,7 +210,7 @@ def _currency_strength(all_signals: list[dict]) -> dict[str, float]:
     counts = {c: 0 for c in config.CURRENCIES}
 
     for sig in all_signals:
-        sym  = sig["symbol"]
+        sym  = sig["symbol"].replace(".a", "")  # strip broker suffix
         base = sym[:3]
         quot = sym[3:]
         conf = sig["confidence"]
