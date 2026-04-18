@@ -1,23 +1,27 @@
 # FXPulse v2 Setup
+$base = 'https://raw.githubusercontent.com/ropkiplagat/fxpulse/main/fxpulse-v2'
+$dir  = 'C:\fxpulse-v2'
 
-New-Item -ItemType Directory -Force -Path C:\fxpulse-v2 | Out-Null
-New-Item -ItemType Directory -Force -Path C:\fxpulse-v2\data | Out-Null
-New-Item -ItemType Directory -Force -Path C:\fxpulse-v2\logs | Out-Null
-Write-Host "Folders created" -ForegroundColor Green
+New-Item -ItemType Directory -Force -Path $dir        | Out-Null
+New-Item -ItemType Directory -Force -Path "$dir\data" | Out-Null
+New-Item -ItemType Directory -Force -Path "$dir\logs" | Out-Null
+Write-Host 'Folders created' -ForegroundColor Green
 
-$base = "https://raw.githubusercontent.com/ropkiplagat/fxpulse/main/fxpulse-v2"
+iwr -Uri "$base/config.py" -OutFile "$dir\config.py"
+Write-Host 'config.py downloaded' -ForegroundColor Green
 
-Invoke-WebRequest -Uri "$base/config.py" -OutFile "C:\fxpulse-v2\config.py"
-Write-Host "config.py downloaded" -ForegroundColor Green
+iwr -Uri "$base/brain.py" -OutFile "$dir\brain.py"
+Write-Host 'brain.py downloaded' -ForegroundColor Green
 
-Invoke-WebRequest -Uri "$base/brain.py" -OutFile "C:\fxpulse-v2\brain.py"
-Write-Host "brain.py downloaded" -ForegroundColor Green
-
-if (Test-Path "C:\fxpulse\.env") {
-    Copy-Item "C:\fxpulse\.env" "C:\fxpulse-v2\.env"
-    Write-Host "env copied" -ForegroundColor Green
+$src = 'C:\fxpulse\.env'
+$dst = "$dir\.env"
+if (Test-Path $src) {
+    Copy-Item $src $dst
+    Write-Host 'env copied' -ForegroundColor Green
+} else {
+    Write-Host 'No .env found - create one manually' -ForegroundColor Yellow
 }
 
-C:\Python310\python.exe -c "import sys; sys.path.insert(0, 'C:/fxpulse-v2'); import config; print('config OK')"
+& 'C:\Python310\python.exe' -c "import sys; sys.path.insert(0,'C:/fxpulse-v2'); import config; print('config OK')"
 
-Write-Host "Done. Now run brain.py" -ForegroundColor Green
+Write-Host 'Done. Now run: C:\Python310\python.exe C:\fxpulse-v2\brain.py' -ForegroundColor Green
