@@ -281,14 +281,9 @@ def scan_once() -> dict:
         "top_pairs":   actionable[:5],
     }
 
-    log.info(
-        f"Done in {elapsed}s — {len(all_sigs)} scanned, "
-        f"{len(actionable)} actionable, {len(errors)} errors"
-    )
+    log.info(f"[BRAIN] Scanned {len(all_sigs)} pairs — {len(errors)} errors")
     if errors:
-        log.warning(f"[BRAIN] {len(errors)} symbols failed: {errors}")
-        if MT5_OK:
-            log.warning(f"[BRAIN] mt5.last_error() = {mt5.last_error()}")
+        print(f"[BRAIN] ❌ {len(errors)} errors — last: {mt5.last_error() if MT5_OK else 'no MT5'}")
     if actionable:
         top = actionable[0]
         log.info(f"[BRAIN] Top signal: {top['symbol']} {top['direction'].upper()} "
