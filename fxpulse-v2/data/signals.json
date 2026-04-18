@@ -1,8 +1,8 @@
 {
-  "updated": "2026-04-18T04:10:25.904393+00:00",
+  "updated": "2026-04-18T04:11:26.927428+00:00",
   "scanned": 28,
   "errors": [],
-  "elapsed_sec": 0.03,
+  "elapsed_sec": 0.02,
   "paper_trading": true,
   "signals": [
     {
@@ -16,7 +16,7 @@
       "atr": 0.000233,
       "spread": -0.000227,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.902946+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     }
   ],
   "all_signals": [
@@ -31,7 +31,7 @@
       "atr": 0.000714,
       "spread": -0.001059,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.876533+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "GBPUSD.a",
@@ -44,7 +44,7 @@
       "atr": 0.000853,
       "spread": -0.001035,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.877118+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "USDJPY.a",
@@ -57,7 +57,7 @@
       "atr": 0.103286,
       "spread": 0.095553,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.878119+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "AUDUSD.a",
@@ -70,7 +70,7 @@
       "atr": 0.000524,
       "spread": -0.000572,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.878910+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "USDCAD.a",
@@ -83,7 +83,7 @@
       "atr": 0.000673,
       "spread": 0.000443,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.879990+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "NZDUSD.a",
@@ -96,7 +96,7 @@
       "atr": 0.000433,
       "spread": -0.00057,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.881015+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "USDCHF.a",
@@ -109,7 +109,7 @@
       "atr": 0.000505,
       "spread": 0.000508,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.881980+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "EURGBP.a",
@@ -122,7 +122,7 @@
       "atr": 0.000221,
       "spread": -0.000122,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.882934+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "EURJPY.a",
@@ -135,7 +135,7 @@
       "atr": 0.0675,
       "spread": -0.055544,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.883909+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "GBPJPY.a",
@@ -148,7 +148,7 @@
       "atr": 0.090214,
       "spread": -0.034655,
       "regime": "ranging",
-      "timestamp": "2026-04-18T04:10:25.884616+00:00"
+      "timestamp": "2026-04-18T04:11:26.907223+00:00"
     },
     {
       "symbol": "XAUUSD.a",
@@ -161,7 +161,7 @@
       "atr": 7.627857,
       "spread": -4.580078,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.886623+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "EURCAD.a",
@@ -174,7 +174,7 @@
       "atr": 0.000849,
       "spread": -0.000928,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.887934+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "AUDCAD.a",
@@ -187,7 +187,7 @@
       "atr": 0.000596,
       "spread": -0.000484,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.888935+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "AUDNZD.a",
@@ -200,7 +200,7 @@
       "atr": 0.000434,
       "spread": 0.000176,
       "regime": "ranging",
-      "timestamp": "2026-04-18T04:10:25.889931+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "AUDCHF.a",
@@ -213,7 +213,7 @@
       "atr": 0.000258,
       "spread": -8.5e-05,
       "regime": "ranging",
-      "timestamp": "2026-04-18T04:10:25.890928+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "CADCHF.a",
@@ -226,7 +226,7 @@
       "atr": 0.000319,
       "spread": 0.00018,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.890928+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "NZDCAD.a",
@@ -239,7 +239,7 @@
       "atr": 0.000518,
       "spread": -0.000526,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.891926+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "NZDCHF.a",
@@ -252,7 +252,7 @@
       "atr": 0.000196,
       "spread": -0.000145,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.892923+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "NZDJPY.a",
@@ -265,7 +265,7 @@
       "atr": 0.045214,
       "spread": -0.033722,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.893919+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "EURNZD.a",
@@ -278,7 +278,7 @@
       "atr": 0.000792,
       "spread": 9e-05,
       "regime": "ranging",
-      "timestamp": "2026-04-18T04:10:25.895183+00:00"
+      "timestamp": "2026-04-18T04:11:26.917434+00:00"
     },
     {
       "symbol": "EURAUD.a",
@@ -291,7 +291,7 @@
       "atr": 0.000759,
       "spread": -0.000191,
       "regime": "ranging",
-      "timestamp": "2026-04-18T04:10:25.897211+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     },
     {
       "symbol": "GBPAUD.a",
@@ -304,7 +304,7 @@
       "atr": 0.000909,
       "spread": 4.9e-05,
       "regime": "ranging",
-      "timestamp": "2026-04-18T04:10:25.898210+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     },
     {
       "symbol": "GBPCAD.a",
@@ -317,7 +317,7 @@
       "atr": 0.000941,
       "spread": -0.000819,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.898666+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     },
     {
       "symbol": "GBPNZD.a",
@@ -330,7 +330,7 @@
       "atr": 0.001071,
       "spread": 0.000398,
       "regime": "ranging",
-      "timestamp": "2026-04-18T04:10:25.899808+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     },
     {
       "symbol": "GBPCHF.a",
@@ -343,7 +343,7 @@
       "atr": 0.000366,
       "spread": -0.000118,
       "regime": "ranging",
-      "timestamp": "2026-04-18T04:10:25.900914+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     },
     {
       "symbol": "EURCHF.a",
@@ -356,7 +356,7 @@
       "atr": 0.000233,
       "spread": -0.000227,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.902946+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     },
     {
       "symbol": "CADJPY.a",
@@ -369,7 +369,7 @@
       "atr": 0.068571,
       "spread": 0.030972,
       "regime": "ranging",
-      "timestamp": "2026-04-18T04:10:25.904145+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     },
     {
       "symbol": "USDZAR.a",
@@ -382,7 +382,7 @@
       "atr": 0.019864,
       "spread": 0.013975,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.904393+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     }
   ],
   "strength": {
@@ -407,7 +407,7 @@
       "atr": 0.000233,
       "spread": -0.000227,
       "regime": "trending",
-      "timestamp": "2026-04-18T04:10:25.902946+00:00"
+      "timestamp": "2026-04-18T04:11:26.927428+00:00"
     }
   ]
 }
