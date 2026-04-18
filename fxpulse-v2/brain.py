@@ -285,9 +285,13 @@ def scan_once() -> dict:
         f"Done in {elapsed}s — {len(all_sigs)} scanned, "
         f"{len(actionable)} actionable, {len(errors)} errors"
     )
+    if errors:
+        log.warning(f"[BRAIN] {len(errors)} symbols failed: {errors}")
+        if MT5_OK:
+            log.warning(f"[BRAIN] mt5.last_error() = {mt5.last_error()}")
     if actionable:
         top = actionable[0]
-        log.info(f"Top signal: {top['symbol']} {top['direction'].upper()} "
+        log.info(f"[BRAIN] Top signal: {top['symbol']} {top['direction'].upper()} "
                  f"conf={top['confidence']:.0%} regime={top['regime']}")
 
     return payload
