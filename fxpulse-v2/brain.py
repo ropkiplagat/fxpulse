@@ -246,6 +246,13 @@ def scan_once() -> dict:
 
     for symbol in config.SYMBOLS:
         try:
+            info = mt5.symbol_info(symbol) if MT5_OK else None
+            if info is None:
+                log.debug(f"{symbol} not found in MT5")
+                errors.append(symbol)
+                continue
+            if not info.visible:
+                mt5.symbol_select(symbol, True)
             candles = _get_candles(symbol, config.CANDLES)
             if candles is None:
                 errors.append(symbol)
