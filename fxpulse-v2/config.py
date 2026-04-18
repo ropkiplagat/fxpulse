@@ -31,13 +31,13 @@ SCAN_INTERVAL      = 60     # Seconds between brain scans
 
 # ── 28 Major Pairs ────────────────────────────────────────────────────────────
 SYMBOLS = [
-    "EURUSD.a", "GBPUSD.a", "AUDUSD.a", "NZDUSD.a", "USDCAD.a", "USDCHF.a", "USDJPY.a",
-    "EURGBP.a", "EURAUD.a", "EURNZD.a", "EURCAD.a", "EURCHF.a", "EURJPY.a",
-    "GBPAUD.a", "GBPNZD.a", "GBPCAD.a", "GBPCHF.a", "GBPJPY.a",
-    "AUDNZD.a", "AUDCAD.a", "AUDCHF.a", "AUDJPY.a",
-    "NZDCAD.a", "NZDCHF.a", "NZDJPY.a",
-    "CADCHF.a", "CADJPY.a",
-    "CHFJPY.a",
+    "EURUSD.a", "GBPUSD.a", "USDJPY.a", "AUDUSD.a",
+    "USDCAD.a", "NZDUSD.a", "USDCHF.a", "EURGBP.a",
+    "EURJPY.a", "GBPJPY.a", "XAUUSD.a", "EURCAD.a",
+    "AUDCAD.a", "AUDNZD.a", "AUDCHF.a", "CADCHF.a",
+    "NZDCAD.a", "NZDCHF.a", "NZDJPY.a", "EURNZD.a",
+    "EURAUD.a", "GBPAUD.a", "GBPCAD.a", "GBPNZD.a",
+    "GBPCHF.a", "EURCHF.a", "CADJPY.a", "USDZAR.a",
 ]
 
 # ── Currencies for strength basket ────────────────────────────────────────────
