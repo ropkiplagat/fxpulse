@@ -300,12 +300,30 @@ def scan_once() -> dict:
 
 
 def write_signals(payload: dict):
-    """Atomically write signals.json."""
+    """Atomically write signals.json locally and push to receiver."""
     tmp = config.SIGNALS_FILE + ".tmp"
     with open(tmp, "w") as f:
         json.dump(payload, f, indent=2, default=str)
     os.replace(tmp, config.SIGNALS_FILE)
     log.info(f"signals.json updated — {len(payload['signals'])} actionable signals")
+    _push_to_receiver(payload)
+
+
+def _push_to_receiver(payload: dict):
+    """POST signals to myforexpulse.com/data/receiver.php."""
+    try:
+        import urllib.request, urllib.error
+        data = json.dumps(payload, default=str).encode()
+        req  = urllib.request.Request(
+            config.RECEIVER_URL,
+            data=data,
+            headers={"Content-Type": "application/json", "X-FXPulse-Key": config.RECEIVER_KEY},
+            method="POST",
+        )
+        res = urllib.request.urlopen(req, timeout=10)
+        log.info(f"[BRAIN] Receiver push OK — {res.status}")
+    except Exception as e:
+        log.warning(f"[BRAIN] Receiver push failed: {e}")
 
 
 def run():
