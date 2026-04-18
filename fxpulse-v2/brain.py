@@ -50,6 +50,24 @@ except ImportError:
 TF_MAP = {"M1": 1, "M5": 5, "M15": 15, "M30": 30, "H1": 16385, "H4": 16388}
 
 
+def _market_open() -> bool:
+    """
+    Forex market hours (UTC):
+      Opens:  Sunday 22:00 UTC
+      Closes: Friday 22:00 UTC
+    Saturday all day and Sunday before 22:00 = closed.
+    """
+    now = datetime.now(timezone.utc)
+    wd  = now.weekday()   # 0=Mon … 4=Fri, 5=Sat, 6=Sun
+    if wd == 5:            # Saturday — always closed
+        return False
+    if wd == 6 and now.hour < 22:   # Sunday before 22:00 UTC
+        return False
+    if wd == 4 and now.hour >= 22:  # Friday after 22:00 UTC
+        return False
+    return True
+
+
 def _connect_mt5() -> bool:
     if not MT5_OK:
         return False
@@ -351,6 +369,12 @@ def run():
         log.warning("MT5 not connected — brain will write empty signals until MT5 is available")
 
     while True:
+        if not _market_open():
+            now = datetime.now(timezone.utc)
+            log.info(f"[BRAIN] Market closed — weekend. Sleeping 15min. ({now.strftime('%A %H:%M UTC')})")
+            time.sleep(900)
+            continue
+
         try:
             payload = scan_once()
             write_signals(payload)
