@@ -71,9 +71,11 @@ def _get_candles(symbol: str, n: int = 100) -> list[dict] | None:
     """Fetch last N candles on M15. Returns list of {open,high,low,close,volume}."""
     if not MT5_OK:
         return None
+    mt5.symbol_select(symbol, True)   # ensure symbol is visible in Market Watch
     tf = mt5.TIMEFRAME_M15
     rates = mt5.copy_rates_from_pos(symbol, tf, 0, n)
     if rates is None or len(rates) == 0:
+        log.debug(f"{symbol} no data: {mt5.last_error()}")
         return None
     return [
         {"open": r["open"], "high": r["high"], "low": r["low"],
