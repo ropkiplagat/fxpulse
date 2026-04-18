@@ -50,7 +50,7 @@ STATE_FILE   = os.path.join(BASE_DIR, "data", "bot_state.json")
 LOG_DIR      = os.path.join(BASE_DIR, "logs")
 
 # ── Dashboard push ────────────────────────────────────────────────────────────
-RECEIVER_URL = "https://myforexpulse.com/data/receiver.php"
+RECEIVER_URL = "https://myforexpulse.com/api/receiver.php"
 RECEIVER_KEY = "fxpulse2026"
 
 # ── Alerts ────────────────────────────────────────────────────────────────────
