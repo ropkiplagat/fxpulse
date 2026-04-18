@@ -310,20 +310,32 @@ def write_signals(payload: dict):
 
 
 def _push_to_receiver(payload: dict):
-    """POST signals to myforexpulse.com/data/receiver.php."""
+    """Push signals.json to GitHub — SiteGround cron pulls it to the dashboard."""
+    import urllib.request, urllib.error, base64
+    token = os.environ.get("GITHUB_TOKEN", "")
+    if not token:
+        log.debug("[BRAIN] No GITHUB_TOKEN — skipping push")
+        return
     try:
-        import urllib.request, urllib.error
-        data = json.dumps(payload, default=str).encode()
-        req  = urllib.request.Request(
-            config.RECEIVER_URL,
-            data=data,
-            headers={"Content-Type": "application/json", "X-FXPulse-Key": config.RECEIVER_KEY},
-            method="POST",
-        )
-        res = urllib.request.urlopen(req, timeout=10)
-        log.info(f"[BRAIN] Receiver push OK — {res.status}")
+        repo = "ropkiplagat/fxpulse"
+        path = "fxpulse-v2/data/signals.json"
+        api  = f"https://api.github.com/repos/{repo}/contents/{path}"
+        content = base64.b64encode(json.dumps(payload, indent=2, default=str).encode()).decode()
+        # get current sha (if file exists)
+        req = urllib.request.Request(api, headers={"Authorization": f"token {token}", "User-Agent": "fxpulse-v2"})
+        try:
+            res = json.loads(urllib.request.urlopen(req).read())
+            sha = {"sha": res["sha"]}
+        except Exception:
+            sha = {}
+        body = json.dumps({"message": "brain: signals update", "content": content, **sha}).encode()
+        req2 = urllib.request.Request(api, data=body,
+            headers={"Authorization": f"token {token}", "User-Agent": "fxpulse-v2", "Content-Type": "application/json"},
+            method="PUT")
+        urllib.request.urlopen(req2, timeout=15)
+        log.info(f"[BRAIN] GitHub push OK — {len(payload['signals'])} signals")
     except Exception as e:
-        log.warning(f"[BRAIN] Receiver push failed: {e}")
+        log.warning(f"[BRAIN] GitHub push failed: {e}")
 
 
 def run():
