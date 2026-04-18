@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FXPulse v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Design tokens ─────────────────────────────────────── */
+:root {
+  --bg:          #04060E;
+  --surface:     #080C1A;
+  --surface2:    #0D1223;
+  --border:      rgba(180,150,60,0.18);
+  --border-glow: rgba(201,168,76,0.45);
+  --gold:        #C9A84C;
+  --gold-bright: #F2CC6B;
+  --gold-dim:    rgba(201,168,76,0.12);
+  --green:       #22C970;
+  --green-dim:   rgba(34,201,112,0.12);
+  --red:         #E85555;
+  --red-dim:     rgba(232,85,85,0.12);
+  --text:        #D9E0EE;
+  --muted:       #5A6580;
+  --muted2:      #3A4260;
+  --radius:      12px;
+}
+
+/* ── Base ───────────────────────────────────────────────── */
+html { font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  min-height: 100vh;
+  padding: 0;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(201,168,76,0.06) 0%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.018) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.018) 40px);
+}
+
+/* ── Header ─────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,12,26,0.85);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--gold-bright);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+.logo span.v { font-weight: 400; opacity: 0.6; font-size: 0.7em; }
+
+.account-info {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.7;
+}
+.account-info strong { color: var(--text); }
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: border-color 0.4s;
+}
+.status-pill.online  { border-color: rgba(34,201,112,0.4); color: var(--green); }
+.status-pill.offline { border-color: rgba(232,85,85,0.4);  color: var(--red); }
+.status-pill.loading { border-color: var(--border); color: var(--muted); }
+
+/* ── Pulse dot ──────────────────────────────────────────── */
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+}
+.dot.online  { background: var(--green); }
+.dot.offline { background: var(--red); }
+.dot.loading { background: var(--muted2); }
+
+.dot.online::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--green);
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0%   { opacity: 0.9; transform: scale(0.85); }
+  100% { opacity: 0;   transform: scale(2.2); }
+}
+
+/* ── Main ───────────────────────────────────────────────── */
+main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+/* ── Section header ─────────────────────────────────────── */
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Signal cards grid ──────────────────────────────────── */
+#signals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* ── Signal card ────────────────────────────────────────── */
+.signal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s, transform 0.2s;
+}
+.signal-card:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+}
+.signal-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.signal-card.buy::before  { background: linear-gradient(90deg, transparent, var(--green), transparent); }
+.signal-card.sell::before { background: linear-gradient(90deg, transparent, var(--red),   transparent); }
+
+/* card top row */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.symbol {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+.symbol-clean {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.direction-badge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.direction-badge.buy  { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,201,112,0.25); }
+.direction-badge.sell { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(232,85,85,0.25); }
+
+/* confidence bar */
+.conf-row {
+  margin-bottom: 14px;
+}
+.conf-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.04em;
+}
+.conf-label strong {
+  font-family: 'Space Mono', monospace;
+  color: var(--gold-bright);
+  font-size: 0.85rem;
+}
+.conf-track {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 100px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.conf-fill {
+  height: 100%;
+  border-radius: 100px;
+  background: linear-gradient(90deg, #9A6F1A, var(--gold-bright));
+  transition: width 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
+  position: relative;
+}
+.conf-fill::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 6px;
+  background: rgba(255,255,255,0.35);
+  border-radius: 100px;
+  filter: blur(1px);
+}
+
+/* bottom row */
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.regime-badge {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.regime-badge.trending { background: var(--gold-dim); color: var(--gold); border: 1px solid rgba(201,168,76,0.25); }
+.regime-badge.ranging  { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+.reason-text {
+  font-size: 0.67rem;
+  color: var(--muted);
+  text-align: right;
+  max-width: 140px;
+  line-height: 1.4;
+}
+
+/* ── Empty state ────────────────────────────────────────── */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 56px 24px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+}
+.empty-state .icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+  opacity: 0.4;
+  display: block;
+}
+.empty-state p { font-size: 0.88rem; line-height: 1.6; }
+.empty-state p + p { margin-top: 6px; font-size: 0.75rem; color: var(--muted2); }
+
+/* ── Meta bar ───────────────────────────────────────────── */
+.meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.meta-text {
+  font-size: 0.73rem;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+}
+.meta-text span { color: var(--text); }
+.refresh-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  transition: border-color 0.2s, color 0.2s;
+}
+.refresh-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── Countdown ring ─────────────────────────────────────── */
+.countdown-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.countdown-ring {
+  width: 22px; height: 22px;
+  transform: rotate(-90deg);
+}
+.countdown-ring circle {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 2.5;
+}
+.countdown-ring .progress {
+  stroke: var(--gold);
+  stroke-linecap: round;
+  stroke-dasharray: 56.5;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear;
+}
+
+/* ── Error banner ───────────────────────────────────────── */
+.error-banner {
+  display: none;
+  padding: 10px 16px;
+  background: rgba(232,85,85,0.08);
+  border: 1px solid rgba(232,85,85,0.25);
+  border-radius: 8px;
+  color: var(--red);
+  font-size: 0.78rem;
+  margin-bottom: 20px;
+}
+.error-banner.visible { display: block; }
+
+/* ── Footer ─────────────────────────────────────────────── */
+footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px 32px;
+  background: rgba(4,6,14,0.92);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.footer-text {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.04em;
+}
+.footer-brand {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.9rem;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+}
+
+/* ── Skeleton loader ─────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Card enter animation ────────────────────────────────── */
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.signal-card { animation: card-in 0.35s ease both; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  header { padding: 14px 16px; }
+  main   { padding: 24px 14px 70px; }
+  .logo  { font-size: 1.35rem; }
+  footer { padding: 10px 16px; }
+  .account-info { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ──────────────────────────────────────────────── -->
+<header>
+  <div class="logo">
+    FXPulse <span class="v">v2</span>
+  </div>
+
+  <div id="status-pill" class="status-pill loading">
+    <span id="status-dot" class="dot loading"></span>
+    <span id="status-text">Connecting…</span>
+  </div>
+
+  <div class="account-info">
+    <div><strong>BRANHAM ROP</strong> &nbsp;|&nbsp; Pepperstone-Demo</div>
+    <div>Balance: <strong>$50,000.00</strong> &nbsp;|&nbsp; Account 61508353</div>
+  </div>
+</header>
+
+<!-- ── Main ────────────────────────────────────────────────── -->
+<main>
+
+  <!-- Meta bar -->
+  <div class="meta-bar">
+    <div class="meta-text">
+      Updated: <span id="updated-time">—</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="countdown-wrap">
+        <svg class="countdown-ring" viewBox="0 0 20 20">
+          <circle cx="10" cy="10" r="9"/>
+          <circle class="progress" id="countdown-arc" cx="10" cy="10" r="9"/>
+        </svg>
+        <span id="countdown-text">30s</span>
+      </div>
+      <button class="refresh-btn" onclick="refresh()">Refresh now</button>
+    </div>
+  </div>
+
+  <!-- Error banner -->
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- Section title -->
+  <div class="section-title">Live Signals</div>
+
+  <!-- Signals grid -->
+  <div id="signals-grid">
+    <!-- Skeleton cards while loading -->
+    <div class="signal-card" style="opacity:0.4;">
+      <div class="skeleton" style="height:18px;width:100px;margin-bottom:14px;"></div>
+      <div class="skeleton" style="height:6px;margin-bottom:14px;"></div>
+      <div class="skeleton" style="height:14px;width:70px;"></div>
+    </div>
+    <div class="signal-card" style="opacity:0.4;">
+      <div class="skeleton" style="height:18px;width:100px;margin-bottom:14px;"></div>
+      <div class="skeleton" style="height:6px;margin-bottom:14px;"></div>
+      <div class="skeleton" style="height:14px;width:70px;"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Footer ──────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-text">Signals update every 60 seconds &nbsp;&bull;&nbsp; Pepperstone-Demo &nbsp;&bull;&nbsp; Account 61508353</div>
+  <div class="footer-brand">FXPulse v2.0</div>
+</footer>
+
+<!-- ── JavaScript ───────────────────────────────────────────── -->
+<script>
+const GH_RAW = 'https://raw.githubusercontent.com/ropkiplagat/fxpulse/main/fxpulse-v2/data/signals.json';
+const GH_API = 'https://api.github.com/repos/ropkiplagat/fxpulse/contents/fxpulse-v2/data/signals.json';
+const STALE_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+const POLL_INTERVAL   = 30;             // seconds
+
+let lastPayload  = null;
+let countdown    = POLL_INTERVAL;
+let countdownTimer;
+let errorCount   = 0;
+
+// ── Fetch signals ───────────────────────────────────────────
+async function fetchSignals() {
+  // Try GitHub API first (no WAF restriction, fresher than raw CDN)
+  try {
+    const res  = await fetch(GH_API + '?_=' + Date.now(), { cache: 'no-store' });
+    if (res.ok) {
+      const meta    = await res.json();
+      const payload = JSON.parse(atob(meta.content.replace(/\n/g, '')));
+      return payload;
+    }
+  } catch (_) {}
+
+  // Fallback: raw.githubusercontent.com
+  try {
+    const res = await fetch(GH_RAW + '?_=' + Date.now(), { cache: 'no-store' });
+    if (res.ok) return await res.json();
+  } catch (_) {}
+
+  return null;
+}
+
+// ── Render ──────────────────────────────────────────────────
+function render(payload) {
+  if (!payload) return;
+
+  lastPayload = payload;
+  const signals    = payload.signals     || [];
+  const updated    = payload.updated     || null;
+  const now        = Date.now();
+  const updatedMs  = updated ? new Date(updated).getTime() : 0;
+  const ageMs      = now - updatedMs;
+  const isOnline   = ageMs < STALE_THRESHOLD;
+  const mktClosed  = payload.market_status === 'closed';
+
+  // Status pill
+  const pill   = document.getElementById('status-pill');
+  const dot    = document.getElementById('status-dot');
+  const stText = document.getElementById('status-text');
+
+  if (isOnline && mktClosed) {
+    pill.className = 'status-pill loading';
+    dot.className  = 'dot loading';
+    stText.textContent = 'MARKET CLOSED';
+  } else {
+    pill.className = 'status-pill ' + (isOnline ? 'online' : 'offline');
+    dot.className  = 'dot ' + (isOnline ? 'online' : 'offline');
+    stText.textContent = isOnline ? 'LIVE' : 'OFFLINE';
+  }
+
+  // Updated time
+  const utEl = document.getElementById('updated-time');
+  if (updated) {
+    const d = new Date(updated);
+    utEl.textContent = d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  } else {
+    utEl.textContent = '—';
+  }
+
+  // Error banner — clear on success
+  document.getElementById('error-banner').classList.remove('visible');
+  errorCount = 0;
+
+  // Render signals grid
+  const grid = document.getElementById('signals-grid');
+  grid.innerHTML = '';
+
+  if (signals.length === 0) {
+    const closed = payload.market_status === 'closed';
+    grid.innerHTML = `
+      <div class="empty-state">
+        <span class="icon">${closed ? '🌙' : '⏱'}</span>
+        <p>${closed ? 'Market closed — weekend' : 'No signals above 65% confidence'}</p>
+        <p>${closed ? 'Forex reopens Sunday 22:00 UTC (Monday 8AM Brisbane)' : 'Brain is scanning 28 pairs — signals appear when markets trend'}</p>
+      </div>`;
+    return;
+  }
+
+  signals.forEach((sig, i) => {
+    const card = buildCard(sig, i);
+    grid.appendChild(card);
+  });
+}
+
+// ── Build card ───────────────────────────────────────────────
+function buildCard(sig, idx) {
+  const dir     = (sig.direction || '').toLowerCase();
+  const symbol  = sig.symbol    || '';
+  const symClean = symbol.replace('.a', '');
+  const conf    = Math.round((sig.confidence || 0) * 100);
+  const regime  = (sig.regime   || 'ranging').toLowerCase();
+  const rsi     = sig.rsi       != null ? sig.rsi.toFixed(1) : '—';
+  const ema9    = sig.ema9      != null ? sig.ema9.toFixed(5) : '—';
+  const cross   = sig.ema_cross || 'none';
+
+  // Build reason text
+  let reason = '';
+  if (cross !== 'none') reason = cross === 'bullish' ? 'EMA golden cross' : 'EMA death cross';
+  else if (dir === 'buy')  reason = `EMA9 > EMA21 | RSI ${rsi}`;
+  else if (dir === 'sell') reason = `EMA9 < EMA21 | RSI ${rsi}`;
+
+  const card = document.createElement('div');
+  card.className = `signal-card ${dir}`;
+  card.style.animationDelay = (idx * 0.07) + 's';
+
+  card.innerHTML = `
+    <div class="card-top">
+      <div>
+        <div class="symbol">${symClean}</div>
+        <div class="symbol-clean">${symbol}</div>
+      </div>
+      <div class="direction-badge ${dir}">${dir === 'buy' ? 'BUY ▲' : 'SELL ▼'}</div>
+    </div>
+
+    <div class="conf-row">
+      <div class="conf-label">
+        <span>Confidence</span>
+        <strong>${conf}%</strong>
+      </div>
+      <div class="conf-track">
+        <div class="conf-fill" style="width:${conf}%"></div>
+      </div>
+    </div>
+
+    <div class="card-bottom">
+      <div class="regime-badge ${regime}">${regime}</div>
+      <div class="reason-text">${reason}</div>
+    </div>
+  `;
+
+  return card;
+}
+
+// ── Refresh ──────────────────────────────────────────────────
+async function refresh() {
+  resetCountdown();
+  const payload = await fetchSignals();
+  if (payload) {
+    render(payload);
+  } else {
+    errorCount++;
+    const banner = document.getElementById('error-banner');
+    banner.textContent = `Fetch failed (attempt ${errorCount}) — showing last known data`;
+    banner.classList.add('visible');
+
+    // Show offline status
+    if (errorCount >= 2) {
+      const pill  = document.getElementById('status-pill');
+      const dot   = document.getElementById('status-dot');
+      const stTxt = document.getElementById('status-text');
+      pill.className = 'status-pill offline';
+      dot.className  = 'dot offline';
+      stTxt.textContent = 'OFFLINE';
+    }
+  }
+}
+
+// ── Countdown arc ────────────────────────────────────────────
+const CIRCUMFERENCE = 2 * Math.PI * 9; // r=9
+
+function resetCountdown() {
+  countdown = POLL_INTERVAL;
+  clearInterval(countdownTimer);
+  tickCountdown();
+  countdownTimer = setInterval(tickCountdown, 1000);
+}
+
+function tickCountdown() {
+  const arc    = document.getElementById('countdown-arc');
+  const label  = document.getElementById('countdown-text');
+  const pct    = countdown / POLL_INTERVAL;
+  const offset = CIRCUMFERENCE * (1 - pct);
+
+  if (arc)   arc.style.strokeDashoffset = offset;
+  if (label) label.textContent = countdown + 's';
+
+  countdown--;
+  if (countdown < 0) {
+    refresh();
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────────
+(async () => {
+  await refresh();
+  resetCountdown();
+})();
+</script>
+</body>
+</html>
