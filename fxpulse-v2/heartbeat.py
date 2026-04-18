@@ -1,17 +1,18 @@
 """
 heartbeat.py — FXPulse v2 | Agent 4: Heartbeat
 ===============================================
-Does ONE thing: POSTs a ping to receiver.php every 30s.
-If receiver stops getting pings, monitor.py fires an alert.
+Pushes a heartbeat record to GitHub every 30s.
+monitor.py checks GitHub — if heartbeat.json > 5 min stale, fires alert.
 
 GATE 6 acceptance test:
-  receiver.php logs a heartbeat entry every 30 seconds.
+  fxpulse-v2/data/heartbeat.json on GitHub updates every 30 seconds.
 """
 
 import os
 import sys
-import time
 import json
+import time
+import base64
 import logging
 import urllib.request
 import urllib.error
@@ -35,66 +36,79 @@ logging.basicConfig(
 )
 log = logging.getLogger("heartbeat")
 
-PING_INTERVAL = 30   # seconds
+PING_INTERVAL = 30
+GITHUB_TOKEN  = os.environ.get("GITHUB_TOKEN", "")
+REPO          = "ropkiplagat/fxpulse"
+HB_PATH       = "fxpulse-v2/data/heartbeat.json"
+_hb_sha       = None   # cached sha to avoid extra GET each push
 
 
-def _read_signals_summary() -> dict:
-    """Read current signals.json for status payload."""
+def _signals_summary() -> dict:
     try:
         with open(config.SIGNALS_FILE) as f:
-            data = json.load(f)
-        # Use .a-aware symbol list from config
+            d = json.load(f)
         return {
-            "scanned":    data.get("scanned", 0),
-            "actionable": len(data.get("signals", [])),
-            "top_symbol": data["signals"][0]["symbol"] if data.get("signals") else None,
-            "symbols_watched": len(config.SYMBOLS),   # 28 pairs, all .a suffix
+            "scanned":    d.get("scanned", 0),
+            "actionable": len(d.get("signals", [])),
+            "top":        d["signals"][0]["symbol"] if d.get("signals") else None,
         }
     except Exception:
-        return {"scanned": 0, "actionable": 0, "top_symbol": None, "symbols_watched": len(config.SYMBOLS)}
+        return {"scanned": 0, "actionable": 0, "top": None}
 
 
-def ping() -> bool:
-    summary = _read_signals_summary()
-    payload = json.dumps({
-        "type":      "heartbeat",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "key":       config.RECEIVER_KEY,
+def _push_heartbeat() -> bool:
+    global _hb_sha
+    if not GITHUB_TOKEN:
+        log.warning("[HB] No GITHUB_TOKEN — cannot push heartbeat")
+        return False
+
+    summary = _signals_summary()
+    payload = {
+        "timestamp":  datetime.now(timezone.utc).isoformat(),
+        "agent":      "heartbeat",
+        "interval_s": PING_INTERVAL,
         **summary,
-    }).encode()
+    }
+    content = base64.b64encode(json.dumps(payload, indent=2).encode()).decode()
+    api     = f"https://api.github.com/repos/{REPO}/contents/{HB_PATH}"
+    hdrs    = {"Authorization": f"token {GITHUB_TOKEN}", "User-Agent": "fxpulse-v2",
+               "Content-Type": "application/json"}
 
-    req = urllib.request.Request(
-        config.RECEIVER_URL,
-        data=payload,
-        headers={"Content-Type": "application/json", "X-FXPulse-Key": config.RECEIVER_KEY},
-        method="POST",
-    )
+    # get current sha if we don't have it cached
+    if not _hb_sha:
+        try:
+            req = urllib.request.Request(api, headers=hdrs)
+            res = json.loads(urllib.request.urlopen(req, timeout=8).read())
+            _hb_sha = res.get("sha")
+        except Exception:
+            _hb_sha = None
+
+    body = json.dumps({"message": "hb: alive", "content": content,
+                        **( {"sha": _hb_sha} if _hb_sha else {})}).encode()
     try:
-        res = urllib.request.urlopen(req, timeout=10)
-        log.info(f"[HB] Ping OK — {res.status} | scanned={summary['scanned']} actionable={summary['actionable']}")
+        req2 = urllib.request.Request(api, data=body, headers=hdrs, method="PUT")
+        res2 = json.loads(urllib.request.urlopen(req2, timeout=15).read())
+        _hb_sha = res2.get("content", {}).get("sha")   # cache new sha
+        log.info(f"[HB] GitHub OK — scanned={summary['scanned']} actionable={summary['actionable']}")
         return True
-    except urllib.error.HTTPError as e:
-        log.warning(f"[HB] Ping HTTP {e.code}: {e.reason}")
-    except urllib.error.URLError as e:
-        log.warning(f"[HB] Ping failed: {e.reason}")
     except Exception as e:
-        log.error(f"[HB] Ping error: {e}")
-    return False
+        _hb_sha = None   # reset so next attempt does GET
+        log.warning(f"[HB] GitHub push failed: {e}")
+        return False
 
 
 def run():
     log.info("=" * 55)
     log.info("FXPulse v2 | Heartbeat starting")
-    log.info(f"  Receiver : {config.RECEIVER_URL}")
     log.info(f"  Interval : {PING_INTERVAL}s")
-    log.info(f"  Symbols  : {len(config.SYMBOLS)} pairs (.a suffix)")
+    log.info(f"  Token    : {'set' if GITHUB_TOKEN else 'MISSING'}")
     log.info("=" * 55)
 
     while True:
         try:
-            ping()
+            _push_heartbeat()
         except Exception as e:
-            log.error(f"[HB] Unexpected error: {e}", exc_info=True)
+            log.error(f"[HB] Unexpected: {e}", exc_info=True)
         time.sleep(PING_INTERVAL)
 
 
