@@ -327,6 +327,23 @@ def write_signals(payload: dict):
     _push_to_receiver(payload)
 
 
+def _push_closed_heartbeat():
+    """Push a market-closed status so dashboard stays green on weekends."""
+    payload = {
+        "updated":      datetime.now(timezone.utc).isoformat(),
+        "scanned":      0,
+        "errors":       [],
+        "elapsed_sec":  0,
+        "paper_trading": config.PAPER_TRADING,
+        "market_status": "closed",
+        "signals":      [],
+        "all_signals":  [],
+        "strength":     {},
+        "top_pairs":    [],
+    }
+    write_signals(payload)
+
+
 def _push_to_receiver(payload: dict):
     """Push signals.json to GitHub — SiteGround cron pulls it to the dashboard."""
     import urllib.request, urllib.error, base64
@@ -372,6 +389,7 @@ def run():
         if not _market_open():
             now = datetime.now(timezone.utc)
             log.info(f"[BRAIN] Market closed — weekend. Sleeping 15min. ({now.strftime('%A %H:%M UTC')})")
+            _push_closed_heartbeat()
             time.sleep(900)
             continue
 
