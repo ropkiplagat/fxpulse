@@ -56,9 +56,26 @@ except ImportError:
 LOOP_INTERVAL = 60  # seconds between scans
 
 
+def _next_session_info(now_utc: datetime) -> dict:
+    """Return name and minutes until the next trading session opens."""
+    now_min = now_utc.hour * 60 + now_utc.minute
+    best_name, best_wait = "london", 9999
+    for sess_name, (start, end) in config.SESSIONS.items():
+        start_min = start * 60
+        wait = (start_min - now_min) % (24 * 60)
+        if wait == 0:
+            wait = 24 * 60
+        if wait < best_wait:
+            best_wait = wait
+            best_name = sess_name
+    h, m = divmod(best_wait, 60)
+    label = f"{best_name.replace('_', ' ').title()} opens in {h}h {m:02d}m"
+    return {"next_session": best_name, "opens_in_min": best_wait, "label": label}
+
+
 def _save_state(strength, top_pairs, account_info, win_probs,
                 regime_info, in_session, session_name, performance,
-                bot_running: bool = True):
+                next_session: dict = None, bot_running: bool = True):
     """Write bot state to JSON for web dashboard."""
     try:
         os.makedirs("logs", exist_ok=True)
@@ -72,8 +89,10 @@ def _save_state(strength, top_pairs, account_info, win_probs,
             "win_probs":       win_probs,
             "regime":          regime_info.get("regime"),
             "regime_tradeable":regime_info.get("tradeable", False),
+            "adx":             regime_info.get("adx", 0),
             "in_session":      in_session,
             "session":         session_name,
+            "next_session":    next_session or {},
             "performance":     performance,
             "news":            news.get_news_summary() if config.USE_NEWS_FILTER else [],
         }
@@ -145,50 +164,44 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                 consecutive_losses = 0
                 continue
 
-            # --- Market regime check ---
+            # ── ALWAYS RUN every cycle (24/7) ────────────────────────────
+            available   = mt5c.get_available_symbols()
+            account     = mt5c.get_account_info()
             regime_info = regime.detect_regime()
-            if config.SKIP_NON_TRENDING_REGIMES and not regime_info["tradeable"]:
-                print(f"[BOT] Regime: {regime_info['regime']} — skipping scan.")
-                available = mt5c.get_available_symbols()
-                account   = mt5c.get_account_info()
-                # Still compute strength so dashboard shows data 24/7
-                strength = cs.calculate_strength(available)
-                top_pairs = cs.get_top_pairs(strength, available)
-                _save_state(strength, top_pairs, account, {}, regime_info, False, "none", perf.get_summary())
-                import json as _json, os as _os
-                if _os.path.exists(config.BOT_STATE_FILE):
-                    with open(config.BOT_STATE_FILE) as _f:
-                        sg.push_state(_json.load(_f))
-                time.sleep(LOOP_INTERVAL)
-                continue
 
-            # --- Available symbols ---
-            available = mt5c.get_available_symbols()
-
-            # --- Currency Strength ---
-            strength = cs.calculate_strength(available)
+            strength   = cs.calculate_strength(available)
             crossovers = cs.detect_crossover(prev_strength, strength)
             if crossovers:
                 print(f"[BOT] Crossovers: {crossovers}")
             prev_strength = strength
-
-            # --- Top pair opportunities ---
             top_pairs = cs.get_top_pairs(strength, available)
 
-            # --- Session status ---
-            now_hour = datetime.now(timezone.utc).hour
-            in_session        = False
-            active_session    = "none"
+            # Session status
+            now_utc        = datetime.now(timezone.utc)
+            now_hour       = now_utc.hour
+            in_session     = False
+            active_session = "none"
             for sess_name in config.TRADE_IN_SESSIONS:
                 start, end = config.SESSIONS[sess_name]
                 if start <= now_hour < end:
                     in_session     = True
                     active_session = sess_name
 
+            next_sess = {} if in_session else _next_session_info(now_utc)
+
+            print(f"[BOT] Regime:{regime_info['regime']} ADX:{regime_info.get('adx',0):.1f} "
+                  f"| Session:{active_session if in_session else next_sess.get('label','')}")
+
             active_signals = []
             win_probs      = {}
 
-            for opportunity in top_pairs:
+            # ── TRADE EXECUTION — only when regime + session allow ────────
+            skip_trading = (config.SKIP_NON_TRENDING_REGIMES and not regime_info["tradeable"]) or not in_session
+            if skip_trading:
+                reason = "outside session" if not in_session else f"regime={regime_info['regime']}"
+                print(f"[BOT] Data collected — skipping trades ({reason})")
+
+            for opportunity in ([] if skip_trading else top_pairs):
                 symbol    = opportunity["symbol"]
                 direction = opportunity["direction"]
 
@@ -262,9 +275,6 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                 active_signals.append(evaluated)
 
                 if not tradeable:
-                    continue
-
-                if not in_session:
                     continue
 
                 # --- Margin protection (30% free margin floor) ---
@@ -379,7 +389,8 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                         win_probs, consecutive_losses, in_session, active_session)
 
             _save_state(strength, top_pairs, account, win_probs,
-                        regime_info, in_session, active_session, summary)
+                        regime_info, in_session, active_session, summary,
+                        next_session=next_sess)
 
             # Push state to dashboard (direct HTTPS — no token needed)
             import json, os
