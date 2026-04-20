@@ -26,7 +26,7 @@ MT5_SERVER   = _os.environ.get("MT5_SERVER", "Pepperstone-Demo")
 MT5_ENCRYPT_SECRET = _os.environ.get("MT5_ENCRYPT_SECRET", "fxpulse-mt5-enc-v1-changeme-on-server")
 
 # === Paper Trading Mode ===
-PAPER_TRADING         = False   # Live trading enabled
+PAPER_TRADING         = True    # Paper trading — build track record before going live
 PAPER_STARTING_BALANCE = 10_000.0  # Virtual starting balance
 
 # === Trading Symbols (Pepperstone .a suffix) ===
