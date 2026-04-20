@@ -32,6 +32,7 @@ import news_filter as news
 import correlation_filter as corr
 import telegram_alerts as tg
 import telegram_bot as tg_bot
+import copy_trades as ct
 import kelly_sizer as ks
 import siteground_api as sg
 import analytics
@@ -89,6 +90,7 @@ def _save_state(strength, top_pairs, account_info, win_probs,
 def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
     print("[BOT] Starting trading loop...")
     print(f"[BOT] Mode: {'PAPER TRADING' if config.PAPER_TRADING else 'LIVE TRADING'}")
+    ct.log_user_count()
 
     # Start async executor, heartbeat, Telegram chatbot, and offline alert watchdog
     executor.start()
@@ -149,7 +151,10 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                 print(f"[BOT] Regime: {regime_info['regime']} — skipping scan.")
                 available = mt5c.get_available_symbols()
                 account   = mt5c.get_account_info()
-                _save_state({}, [], account, {}, regime_info, False, "none", perf.get_summary())
+                # Still compute strength so dashboard shows data 24/7
+                strength = cs.calculate_strength(available)
+                top_pairs = cs.get_top_pairs(strength, available)
+                _save_state(strength, top_pairs, account, {}, regime_info, False, "none", perf.get_summary())
                 import json as _json, os as _os
                 if _os.path.exists(config.BOT_STATE_FILE):
                     with open(config.BOT_STATE_FILE) as _f:
@@ -323,6 +328,8 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                                               entry_price, sl, tp, final_prob, adj_confluence)
                     mode_str = "[PAPER]" if config.PAPER_TRADING else "[LIVE]"
                     print(f"[BOT] {mode_str} Trade initiated: {direction.upper()} {symbol}")
+                    # ── Copy to all user accounts ──────────────────────────
+                    ct.copy_open(symbol, direction, sl=sl, tp=tp)
                 else:
                     print(f"[BOT] Order failed: {result}")
 
@@ -361,6 +368,8 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                             else:
                                 consecutive_losses = 0
                             print(f"[BOT] #{ticket} closed: {outcome} | P&L:{deal.profit:.2f}")
+                            # ── Close copies on all user accounts ─────────
+                            ct.copy_close(symbol, direction)
 
             # --- Dashboard & state save ---
             account    = mt5c.get_account_info()
