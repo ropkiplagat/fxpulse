@@ -97,7 +97,7 @@ TELEGRAM_TOKEN   = ""   # Get from @BotFather
 TELEGRAM_CHAT_ID = ""   # Your chat ID (message @userinfobot)
 
 # === LSTM Ensemble ===
-USE_LSTM = True         # Set False to use XGBoost only (faster)
+USE_LSTM = False        # Disabled — TensorFlow training hangs on this VPS; XGBoost sufficient
 LSTM_WEIGHT = 0.35      # LSTM weight in ensemble (XGB gets 1 - this)
 XGB_WEIGHT  = 0.65      # XGBoost weight
 
