@@ -1,6 +1,6 @@
 """
 Forex Bot Configuration
-Pepperstone MT5 — Demo account for testing
+Pepperstone MT5 — Live trading
 """
 import os as _os
 
@@ -22,8 +22,11 @@ MT5_LOGIN    = int(_os.environ.get("MT5_LOGIN", "0"))
 MT5_PASSWORD = _os.environ.get("MT5_PASSWORD", "")
 MT5_SERVER   = _os.environ.get("MT5_SERVER", "Pepperstone-Demo")
 
+# Encryption secret — MUST match ENCRYPT_SECRET in deploy/includes/config.php on SiteGround
+MT5_ENCRYPT_SECRET = _os.environ.get("MT5_ENCRYPT_SECRET", "fxpulse-mt5-enc-v1-changeme-on-server")
+
 # === Paper Trading Mode ===
-PAPER_TRADING         = True    # START HERE — set False only after demo success
+PAPER_TRADING         = False   # Live trading enabled
 PAPER_STARTING_BALANCE = 10_000.0  # Virtual starting balance
 
 # === Trading Symbols (Pepperstone .a suffix) ===
