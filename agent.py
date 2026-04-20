@@ -65,7 +65,10 @@ GITHUB_REPO  = "ropkiplagat/fxpulse"
 def log(msg: str):
     ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     line = f"[{ts}] {msg}"
-    print(line)
+    try:
+        print(line)
+    except UnicodeEncodeError:
+        print(line.encode('ascii', 'replace').decode())
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(line + "\n")
 
@@ -274,7 +277,7 @@ def check_infra() -> bool:
         if size_mb > LOG_ROTATE_MB:
             archive = log_path.with_suffix(f".{datetime.now().strftime('%Y%m%d%H%M%S')}.log")
             shutil.move(str(log_path), str(archive))
-            log(f"[CHECK4] Rotated {log_path.name} ({size_mb:.0f}MB) → {archive.name}")
+            log(f"[CHECK4] Rotated {log_path.name} ({size_mb:.0f}MB) -> {archive.name}")
 
     # Disk space
     try:
