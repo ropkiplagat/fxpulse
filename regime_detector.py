@@ -36,7 +36,7 @@ def detect_regime(symbol: str = "EURUSD.a") -> dict:
     high  = df["high"]
     low   = df["low"]
 
-    # ADX — trend strength (>25 = trending, <20 = ranging)
+    # ADX — trend strength (>20 = trending, <18 = ranging)
     adx_obj = ADXIndicator(high, low, close, window=14)
     adx     = adx_obj.adx().iloc[-1]
     adx_pos = adx_obj.adx_pos().iloc[-1]  # +DI
@@ -58,15 +58,15 @@ def detect_regime(symbol: str = "EURUSD.a") -> dict:
     # --- Classify ---
     if atr_pct > 1.5:  # Extremely volatile (crisis/news spike)
         regime = "crisis"
-    elif adx > 25 and adx_pos > adx_neg:
+    elif adx > 20 and adx_pos > adx_neg:
         regime = "trending_up"
-    elif adx > 25 and adx_neg > adx_pos:
+    elif adx > 20 and adx_neg > adx_pos:
         regime = "trending_down"
-    elif adx < 20 and bb_width < 0.5:
+    elif adx < 18 and bb_width < 0.5:
         regime = "ranging"
     elif atr_pct > 0.8:
         regime = "volatile"
-    elif adx >= 20:
+    elif adx >= 18:
         regime = "trending_up" if ema20 > ema50 else "trending_down"
     else:
         regime = "ranging"
