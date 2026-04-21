@@ -7,6 +7,8 @@ CHECK 2: Dashboard Health    — verify myforexpulse.com is reachable
 CHECK 3: Bot Guardian        — ensure main.py is running; restart if stale
 CHECK 4: Infra Guardian      — log rotation, disk space
 CHECK 5: Reporter            — SMS on failures, daily 7am AEST summary
+CHECK 7: User Data Guardian  — verify user roles/state files every 10 min;
+                               SMS alert on unauthorized admin account
 """
 
 import os
@@ -53,12 +55,15 @@ def _load_env():
 
 _load_env()
 
-TWILIO_SID   = os.environ.get("TWILIO_SID", "")
-TWILIO_TOKEN = os.environ.get("TWILIO_TOKEN", "")
-TWILIO_FROM  = os.environ.get("TWILIO_FROM", "")
-TWILIO_TO    = os.environ.get("TWILIO_TO", "+61489263227")
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "")
-GITHUB_REPO  = "ropkiplagat/fxpulse"
+TWILIO_SID        = os.environ.get("TWILIO_SID", "")
+TWILIO_TOKEN      = os.environ.get("TWILIO_TOKEN", "")
+TWILIO_FROM       = os.environ.get("TWILIO_FROM", "")
+TWILIO_TO         = os.environ.get("TWILIO_TO", "+61489263227")
+GITHUB_TOKEN      = os.environ.get("GITHUB_TOKEN", "")
+GITHUB_REPO       = "ropkiplagat/fxpulse"
+SITEGROUND_API_KEY = os.environ.get("SITEGROUND_API_KEY", "")
+USER_HEALTH_URL   = "https://myforexpulse.com/user_health.php"
+USER_CHECK_INTERVAL_MIN = 10
 
 
 # ── Logging ──────────────────────────────────────────────────────────────────
@@ -87,6 +92,7 @@ def load_state() -> dict:
         "last_alert": None,
         "last_daily_report": None,
         "total_fixes": 0,
+        "last_user_check": None,
     }
 
 
@@ -349,6 +355,61 @@ def check_reporter(state: dict) -> dict:
     return state
 
 
+# ── CHECK 7: User Data Guardian ──────────────────────────────────────────────
+def check_user_data_guardian(state: dict) -> dict:
+    log("[CHECK7] User Data Guardian...")
+
+    if not SITEGROUND_API_KEY:
+        log("[CHECK7] WARN: SITEGROUND_API_KEY missing — skipping")
+        return state
+
+    # Run only every 10 minutes
+    last_check = state.get("last_user_check")
+    if last_check:
+        try:
+            elapsed_min = (datetime.now() - datetime.fromisoformat(last_check)).total_seconds() / 60
+            if elapsed_min < USER_CHECK_INTERVAL_MIN:
+                log(f"[CHECK7] Skipped — last check {elapsed_min:.1f} min ago")
+                return state
+        except Exception:
+            pass
+
+    try:
+        url = f"{USER_HEALTH_URL}?token={SITEGROUND_API_KEY}"
+        req = urllib.request.Request(url, headers={"User-Agent": "fxpulse-agent"})
+        with urllib.request.urlopen(req, timeout=15) as r:
+            data = json.loads(r.read())
+    except Exception as e:
+        log(f"[CHECK7] ERROR fetching user health: {e}")
+        return state
+
+    state["last_user_check"] = datetime.now().isoformat()
+
+    users = data.get("users", [])
+    unauthorized_admins = []
+
+    for u in users:
+        uname     = u.get("username", "")
+        role      = u.get("role", "")
+        has_state = u.get("has_state_file", False)
+
+        if role == "viewer" and not has_state:
+            log(f"[CHECK7] WARN: User '{uname}' has no state file — will fall back to master state")
+
+        if role == "admin" and uname != "rop":
+            unauthorized_admins.append(uname)
+            log(f"[CHECK7] SECURITY: Unauthorized admin account detected: '{uname}'")
+
+    if unauthorized_admins:
+        msg = f"FXPulse SECURITY: Unauthorized admin account(s): {', '.join(unauthorized_admins)}"
+        send_sms(msg)
+        log(f"[CHECK7] SMS sent — unauthorized admin alert")
+    else:
+        log(f"[CHECK7] OK — {len(users)} users checked, no unauthorized admins")
+
+    return state
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 def main():
     log("=" * 55)
@@ -361,6 +422,7 @@ def main():
     ok, state = check_bot_guardian(state)
     check_infra()
     state = check_reporter(state)
+    state = check_user_data_guardian(state)
 
     save_state(state)
     log(f"[AGENT] Done. Fixes total={state['total_fixes']} consecutive_failures={state['consecutive_failures']}")
