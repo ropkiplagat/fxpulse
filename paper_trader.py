@@ -112,6 +112,12 @@ class PaperTrader:
         _save(PAPER_STATE_FILE, self.positions)
         _save(PAPER_HISTORY_FILE, self.history)
         print(f"[PAPER] Closed {pos['symbol']} #{ticket}: {outcome} | P&L: {pnl:+.2f} | Bal: {self.balance:.2f}")
+        try:
+            import telegram_alerts as tg
+            tg.alert_trade_closed(pos["symbol"], pos["direction"],
+                                  ticket, outcome, round(pnl, 2))
+        except Exception:
+            pass
         return {"success": True, "ticket": ticket}
 
     def modify_sl(self, ticket: str, new_sl: float) -> dict:
@@ -161,6 +167,11 @@ class PaperTrader:
             unrealized += self._calc_pnl(pos, price, pos["lot"])
         self.equity = self.balance + unrealized
         return self.equity
+
+    def close_all(self):
+        """Close all open paper positions (circuit breaker L3)."""
+        for pos in list(self.positions):
+            self.close_position(pos["ticket"])
 
     def get_open_positions(self, symbol: str = None) -> list:
         if symbol:
