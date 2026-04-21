@@ -32,7 +32,7 @@ DRAWDOWN_LADDER = [
 
 # Max portfolio risk budget (sum of all open positions)
 MAX_PORTFOLIO_RISK_PCT = 0.15
-MAX_PER_TRADE_RISK_PCT = 0.02  # Hard cap regardless of Kelly
+MAX_PER_TRADE_RISK_PCT = 0.005  # Hard cap = 0.5% (Bethwel trial spec)
 
 
 def half_kelly_fraction(win_prob: float, avg_win_r: float, avg_loss_r: float) -> float:
