@@ -479,6 +479,12 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                                               entry_price, sl, tp, final_prob, adj_confluence)
                     mode_str = "[PAPER]" if config.PAPER_TRADING else "[LIVE]"
                     print(f"[BOT] {mode_str} Trade initiated: {direction.upper()} {symbol}")
+                    if config.PAPER_TRADING:
+                        alerts.send_trade_sms(
+                            f"FXPulse PAPER ENTRY | {direction.upper()} {symbol} | "
+                            f"Lot:{lot} Entry:{entry_price:.5f} SL:{sl:.5f} TP:{tp:.5f} "
+                            f"AI:{final_prob:.0%}"
+                        )
                     # ── Copy to all user accounts ──────────────────────────
                     ct.copy_open(symbol, direction, sl=sl, tp=tp)
                 else:
