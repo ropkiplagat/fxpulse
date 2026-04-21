@@ -63,7 +63,7 @@ GITHUB_TOKEN      = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_REPO       = "ropkiplagat/fxpulse"
 USER_CHECK_INTERVAL_MIN = 10
 SG_SSH_HOST = "ssh.myforexpulse.com"
-SG_SSH_PORT = "18765"
+SG_SSH_PORT = 18765
 SG_SSH_USER = "u73-cgnrzebgdlwg"
 SG_SSH_KEY  = "C:/fxpulse/sg_key"
 SG_DATA_DIR = "/home/u73-cgnrzebgdlwg/www/myforexpulse.com/public_html/data"
@@ -380,32 +380,29 @@ def check_user_data_guardian(state: dict) -> dict:
         except Exception:
             pass
 
-    # SSH into SiteGround to read users.json directly (HTTP is WAF-blocked from VPS IP)
-    py_script = (
-        "import json, os\n"
-        f"uf = '{SG_DATA_DIR}/users.json'\n"
-        f"sd = '{SG_DATA_DIR}/user_states/'\n"
-        "try:\n"
-        "    users = json.load(open(uf))\n"
-        "except Exception as e:\n"
-        "    print(json.dumps({'error': str(e)})); raise SystemExit(1)\n"
-        "result = []\n"
-        "for uname, u in users.items():\n"
-        "    result.append({'username': uname, 'role': u.get('role','viewer'),\n"
-        "                   'has_state_file': os.path.exists(sd + uname + '.json')})\n"
-        "print(json.dumps({'users': result}))\n"
-    )
+    # Connect to SiteGround via paramiko SFTP (HTTP to SiteGround is WAF-blocked from VPS IP)
     try:
-        proc = subprocess.run(
-            ["ssh", "-i", SG_SSH_KEY, "-p", SG_SSH_PORT,
-             "-o", "StrictHostKeyChecking=no", "-o", "ConnectTimeout=10",
-             f"{SG_SSH_USER}@{SG_SSH_HOST}", "python3 -"],
-            input=py_script, capture_output=True, text=True, timeout=25
-        )
-        if proc.returncode != 0:
-            log(f"[CHECK7] SSH error: {proc.stderr.strip()[:200]}")
-            return state
-        data = json.loads(proc.stdout.strip())
+        import paramiko as _pm
+        sg = _pm.SSHClient()
+        sg.set_missing_host_key_policy(_pm.AutoAddPolicy())
+        sg_key = _pm.Ed25519Key.from_private_key_file(SG_SSH_KEY)
+        sg.connect(SG_SSH_HOST, port=SG_SSH_PORT, username=SG_SSH_USER,
+                   pkey=sg_key, timeout=15)
+        sftp = sg.open_sftp()
+        try:
+            with sftp.open(f"{SG_DATA_DIR}/users.json") as f:
+                users_raw = json.loads(f.read())
+            state_files = set(sftp.listdir(f"{SG_DATA_DIR}/user_states/"))
+        finally:
+            sftp.close()
+            sg.close()
+        data = {
+            "users": [
+                {"username": uname, "role": u.get("role", "viewer"),
+                 "has_state_file": (uname + ".json") in state_files}
+                for uname, u in users_raw.items()
+            ]
+        }
     except Exception as e:
         log(f"[CHECK7] ERROR: {e}")
         return state
