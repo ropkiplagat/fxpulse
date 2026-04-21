@@ -61,9 +61,12 @@ TWILIO_FROM       = os.environ.get("TWILIO_FROM", "")
 TWILIO_TO         = os.environ.get("TWILIO_TO", "+61489263227")
 GITHUB_TOKEN      = os.environ.get("GITHUB_TOKEN", "")
 GITHUB_REPO       = "ropkiplagat/fxpulse"
-SITEGROUND_API_KEY = os.environ.get("SITEGROUND_API_KEY", "")
-USER_HEALTH_URL   = "https://myforexpulse.com/user_health.php"
 USER_CHECK_INTERVAL_MIN = 10
+SG_SSH_HOST = "ssh.myforexpulse.com"
+SG_SSH_PORT = "18765"
+SG_SSH_USER = "u73-cgnrzebgdlwg"
+SG_SSH_KEY  = "C:/fxpulse/sg_key"
+SG_DATA_DIR = "/home/u73-cgnrzebgdlwg/www/myforexpulse.com/public_html/data"
 
 
 # ── Logging ──────────────────────────────────────────────────────────────────
@@ -366,10 +369,6 @@ def check_reporter(state: dict) -> dict:
 def check_user_data_guardian(state: dict) -> dict:
     log("[CHECK7] User Data Guardian...")
 
-    if not SITEGROUND_API_KEY:
-        log("[CHECK7] WARN: SITEGROUND_API_KEY missing — skipping")
-        return state
-
     # Run only every 10 minutes
     last_check = state.get("last_user_check")
     if last_check:
@@ -381,13 +380,34 @@ def check_user_data_guardian(state: dict) -> dict:
         except Exception:
             pass
 
+    # SSH into SiteGround to read users.json directly (HTTP is WAF-blocked from VPS IP)
+    py_script = (
+        "import json, os\n"
+        f"uf = '{SG_DATA_DIR}/users.json'\n"
+        f"sd = '{SG_DATA_DIR}/user_states/'\n"
+        "try:\n"
+        "    users = json.load(open(uf))\n"
+        "except Exception as e:\n"
+        "    print(json.dumps({'error': str(e)})); raise SystemExit(1)\n"
+        "result = []\n"
+        "for uname, u in users.items():\n"
+        "    result.append({'username': uname, 'role': u.get('role','viewer'),\n"
+        "                   'has_state_file': os.path.exists(sd + uname + '.json')})\n"
+        "print(json.dumps({'users': result}))\n"
+    )
     try:
-        url = f"{USER_HEALTH_URL}?token={SITEGROUND_API_KEY}"
-        req = urllib.request.Request(url, headers={"User-Agent": "fxpulse-agent"})
-        with urllib.request.urlopen(req, timeout=15) as r:
-            data = json.loads(r.read())
+        proc = subprocess.run(
+            ["ssh", "-i", SG_SSH_KEY, "-p", SG_SSH_PORT,
+             "-o", "StrictHostKeyChecking=no", "-o", "ConnectTimeout=10",
+             f"{SG_SSH_USER}@{SG_SSH_HOST}", "python3 -"],
+            input=py_script, capture_output=True, text=True, timeout=25
+        )
+        if proc.returncode != 0:
+            log(f"[CHECK7] SSH error: {proc.stderr.strip()[:200]}")
+            return state
+        data = json.loads(proc.stdout.strip())
     except Exception as e:
-        log(f"[CHECK7] ERROR fetching user health: {e}")
+        log(f"[CHECK7] ERROR: {e}")
         return state
 
     state["last_user_check"] = datetime.now().isoformat()
