@@ -5,6 +5,116 @@ Newest section at top.
 
 ---
 
+## London session window analysis — 22 April 2026
+
+**Auditor:** Claude (claude-sonnet-4-6)
+**Window investigated:** 07:00–14:18 UTC April 21 (17:00–00:18 AEST — full London session)
+**Sources:** agent.log (417KB), service.log (37MB), service_err.log (38KB), bot_state.json
+
+### Q1: Were any signals generated during London session?
+
+**NO. Zero signals in the entire 07:00–14:18 UTC window.**
+
+Evidence from service.log:
+- 1,680 total `Regime:` entries in service.log
+- Regime distribution: `ranging` = 118 entries, `neutral` = 1,562 entries
+- ADX throughout London window: 15.6–16.5 (ranging) → 12.24 (neutral)
+- ADX threshold for trading: ≥ 20 (bull/bear regime required)
+- Service.log repeats every cycle: "No valid pairs above minimum strength gap."
+  and "No signals meet threshold at this time."
+
+Root cause: Market was in consolidation all session. ADX never crossed 20.
+`SKIP_NON_TRENDING_REGIMES = True` correctly blocked trade evaluation.
+
+### Q2: Were any trade executions attempted?
+
+**NO. Zero executions.**
+
+Every cycle in service.log shows:
+`Trades:0 | WR:0.0% | P&L:+0.00 | Sharpe:0.00 | ExecLatency:0ms`
+
+Execution path was never reached — the regime gate blocked it upstream.
+
+### Q3: Were any SMS sent?
+
+**NO. Zero SMS.**
+
+No Twilio, SMS, or emergency references in agent.log or service.log beyond
+the circuit breaker wiring (which was never triggered, CB level remained 0).
+
+### Q4: Any errors or skip events?
+
+**Skip events: expected.** Every cycle shows:
+- Outside London window (early hours): `"skipping trades (outside session)"`
+- Inside London window: `"skipping trades (regime=ranging)"` / `regime=neutral`
+
+**Errors found — TWO separate bugs:**
+
+**BUG A — UnboundLocalError (boot-phase, repeated crashes):**
+```
+UnboundLocalError: local variable 'os' referenced before assignment
+  File "C:\fxpulse\main.py", line 267, in run_trading_loop
+    cb_reset_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cb_reset.txt")
+```
+The VPS had a version of main.py where Python's scoping rules treated `os`
+as a local variable (likely due to an `import os` or `os = x` inside the
+same function scope somewhere after line 267). This caused repeated crashes
+during the early-morning boot phase (00:49–02:00 UTC). The agent detected
+stale state at 01:56 UTC and triggered restarts. Eventually resolved itself.
+**Status:** Not currently crashing (bot ran 12+ hours after recovery). But must be
+diagnosed before next restart — if main.py is downloaded fresh from GitHub, it
+may reintroduce or fix depending on which version is on GitHub vs VPS.
+
+**BUG B — MT5 IPC failed (early restarts):**
+```
+RuntimeError: MT5 init failed: (-10003, 'IPC initialize failed, MetaTrader 5 x64 not found')
+```
+MT5 terminal was not running when the watchdog restarted the bot after crash.
+Multiple rapid restarts at 00:49, 00:50, 00:51, 00:52 UTC. Eventually MT5
+came up and bot connected successfully. Standard watchdog race condition.
+
+**XGBoost retrain at 11:54 UTC:** Completed with only a deprecation warning
+(`use_label_encoder not used`) — did NOT hang. This clears the retrain-hang
+hypothesis for the 14:18 UTC freeze.
+
+### Q5: Is the empty paper_history.json a trade-logging bug?
+
+**NO. It is correct behavior.**
+
+The market was not trending during the London session. ADX peaked at 16.5,
+never reaching the 20 threshold. No signals → no trades → no log entries.
+The `paper_history.json` absence is exactly what should happen when the
+regime filter blocks all entries.
+
+There is NO logging bug.
+
+### What actually froze the bot at 14:18 UTC?
+
+XGBoost retrain is now ruled out (completed at 11:54 UTC without hanging).
+Remaining candidates for the 14:18 UTC freeze:
+
+1. **`dash.prompt_action()` keyboard block** — if the dashboard's input
+   prompt uses a blocking call (e.g. `input()` or `msvcrt.getch()`) with no
+   timeout, the main loop stalls at end-of-cycle waiting for a keypress that
+   never comes on a headless VPS session.
+2. **MT5 API call timeout** — `mt5c.get_account_info()` or `mt5c.get_bars()`
+   blocking indefinitely if MT5 loses connectivity but doesn't raise an error.
+3. **Memory exhaustion** — service.log grew to 37MB; service.log logging
+   overhead + 37MB file = possible I/O slowdown but unlikely to fully freeze.
+
+**Highest probability: `dash.prompt_action()` blocking without a timeout.**
+Run `C:\fxpulse\dashboard.py` content check to confirm.
+
+### Agent CHECK2 warn (HTTP 202) — persistent throughout
+
+Every agent cycle in the entire log shows:
+`[CHECK2] WARN — unexpected response HTTP 202`
+
+This is the SiteGround WAF returning a captcha redirect for direct POST.
+Expected behaviour (GitHub relay is the working path). Not a bug.
+
+---
+
 ## Pre-live audit follow-up — 22 April 2026
 
 **Auditor:** Claude (claude-sonnet-4-6)
