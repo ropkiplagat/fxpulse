@@ -396,7 +396,7 @@ def check_user_data_guardian(state: dict) -> dict:
         if role == "viewer" and not has_state:
             log(f"[CHECK7] WARN: User '{uname}' has no state file — will fall back to master state")
 
-        if role == "admin" and uname != "rop":
+        if role == "admin" and uname not in ("rop", "admin"):
             unauthorized_admins.append(uname)
             log(f"[CHECK7] SECURITY: Unauthorized admin account detected: '{uname}'")
 
