@@ -5,6 +5,107 @@ Newest section at top.
 
 ---
 
+## Pre-live audit 21/22 April 2026 — Item 3e Fixes — 22 April 2026
+
+**Auditor:** Claude (claude-sonnet-4-6)
+**Trigger:** 3e audit found three defects. All three fixes approved by Rop and applied.
+**VPS verification:** All fixes confirmed present on VPS via findstr.
+
+---
+
+### Fix 1 — config.py: MAX_DAILY_DRAWDOWN threshold corrected
+
+**Before (line 49):**
+```python
+MAX_DAILY_DRAWDOWN    = 5.0    # % — halt trading if exceeded
+```
+
+**After (line 49):**
+```python
+MAX_DAILY_DRAWDOWN    = 2.0    # % — halt new entries if daily P&L hits -2%
+```
+
+- GitHub push: status 200, SHA `9ae28a58de9a846c`
+- VPS deploy: `Invoke-WebRequest` → `OK_config.py` confirmed
+- VPS verify: `findstr MAX_DAILY_DRAWDOWN C:xpulse\config.py` → `49:MAX_DAILY_DRAWDOWN    = 2.0` ✓
+
+---
+
+### Fix 2 — trade_manager.py: UTC midnight reset logic added
+
+**Before:** `check_daily_drawdown()` used a `_halt_until` datetime with a fixed 30-minute
+pause. No midnight UTC reset. Module-level halt state: none.
+
+**After — new module-level variable (line 10):**
+```python
+_daily_halt_date = None   # UTC date on which the daily -2% limit was hit
+```
+
+**After — rewritten `check_daily_drawdown()` (lines 144–174) — midnight reset logic:**
+```python
+def check_daily_drawdown() -> bool:
+    """True if daily -2% loss limit hit. Resets at UTC midnight."""
+    global _daily_halt_date
+    today = datetime.now(timezone.utc).date()
+
+    if _daily_halt_date and _daily_halt_date < today:
+        _daily_halt_date = None   # midnight reset
+
+    if _daily_halt_date == today:
+        return True   # already halted today, stay halted
+    ...
+    if drawdown >= config.MAX_DAILY_DRAWDOWN:
+        _daily_halt_date = today
+        print(f"[TM] DAILY LIMIT HIT: {drawdown:.2f}% >= {config.MAX_DAILY_DRAWDOWN}% — halted until UTC midnight")
+        return True
+    return False
+```
+
+- GitHub push: status 200, SHA `690f0fb48973fa89`
+- VPS deploy: `Invoke-WebRequest` → `OK_trade_manager.py` confirmed
+- VPS verify: `findstr _daily_halt_date` → lines 10, 146, 149, 150, 152, 171 ✓
+- VPS verify: `findstr "UTC midnight"` → lines 10, 145, 150, 172 ✓
+
+---
+
+### Fix 3 — trade_manager.py: paper-aware balance/equity reading
+
+**Before:** `check_daily_drawdown()` always called `mt5c.get_account_info()` regardless
+of `PAPER_TRADING`, so paper equity was never measured.
+
+**After (lines 155–165):**
+```python
+    if config.PAPER_TRADING:
+        import paper_trader as pt
+        paper   = pt.get_paper_trader()
+        balance = paper.balance
+        equity  = paper.update_equity()
+    else:
+        account = mt5c.get_account_info()
+        if not account:
+            return False
+        balance = account.balance
+        equity  = account.equity
+```
+
+- VPS verify: `findstr PAPER_TRADING C:xpulse	rade_manager.py` → `155:    if config.PAPER_TRADING:` ✓
+- `from datetime import datetime, timezone` import: line 4 ✓
+
+---
+
+### Item 3e Re-audit — PASS
+
+| Check | Requirement | Result |
+|-------|-------------|--------|
+| Threshold | Halt at -2% daily P&L | PASS — `MAX_DAILY_DRAWDOWN = 2.0` confirmed on VPS |
+| Reset | UTC midnight (not fixed-duration timer) | PASS — `_daily_halt_date < today` → None, resets each day |
+| Paper-aware | Reads paper_trader balance, not MT5 account | PASS — `if config.PAPER_TRADING:` branch reads `paper.update_equity()` |
+| Call site | Check runs before every entry in main loop | PASS — `if check_daily_drawdown(): continue` in main.py |
+
+**3e status: PASS (was FAIL before these fixes)**
+
+---
+
 ## London session window analysis — 22 April 2026
 
 **Auditor:** Claude (claude-sonnet-4-6)
