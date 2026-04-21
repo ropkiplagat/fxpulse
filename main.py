@@ -95,9 +95,11 @@ def _save_state(strength, top_pairs, account_info, win_probs,
             "strength":        strength,
             "top_pairs":       top_pairs,
             "win_probs":       win_probs,
-            "regime":          regime_info.get("regime"),
-            "regime_tradeable":regime_info.get("tradeable", False),
-            "adx":             regime_info.get("adx", 0),
+            "regime":           regime_info.get("regime"),
+            "regime_tradeable": regime_info.get("tradeable", False),
+            "regime_direction": regime_info.get("direction"),
+            "regime_confidence":regime_info.get("confidence", 0),
+            "adx":              regime_info.get("adx", 0),
             "in_session":      in_session,
             "session":         session_name,
             "next_session":    next_session or {},
@@ -212,6 +214,11 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
             for opportunity in ([] if skip_trading else top_pairs):
                 symbol    = opportunity["symbol"]
                 direction = opportunity["direction"]
+
+                # Regime direction constraint (bull=buy only, bear=sell only)
+                regime_dir = regime_info.get("direction")
+                if regime_dir and direction != regime_dir:
+                    continue
 
                 # Cooldown
                 last_trade = cooldown_tracker.get(symbol)
