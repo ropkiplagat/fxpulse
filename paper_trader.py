@@ -118,6 +118,15 @@ class PaperTrader:
                                   ticket, outcome, round(pnl, 2))
         except Exception:
             pass
+        try:
+            import alerts
+            alerts.send_trade_sms(
+                f"FXPulse PAPER EXIT {outcome.upper()} | "
+                f"{pos['direction'].upper()} {pos['symbol']} #{ticket} | "
+                f"P&L: {pnl:+.2f}"
+            )
+        except Exception:
+            pass
         return {"success": True, "ticket": ticket}
 
     def modify_sl(self, ticket: str, new_sl: float) -> dict:
