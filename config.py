@@ -46,7 +46,7 @@ NUM_BARS  = 200     # Bars to fetch per symbol
 
 # === Risk Management ===
 RISK_PERCENT          = 1.0    # % of account per trade
-MAX_DAILY_DRAWDOWN    = 5.0    # % — halt trading if exceeded
+MAX_DAILY_DRAWDOWN    = 2.0    # % — halt new entries if daily P&L hits -2%
 MAX_SPREAD_PIPS       = 3.0    # Skip trade if spread > this
 MARGIN_MIN_FREE_RATIO = 0.30   # Skip all trades if free_margin/equity < 30%
 MAGIC_NUMBER          = 20001
