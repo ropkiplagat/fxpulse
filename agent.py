@@ -277,13 +277,20 @@ def check_infra() -> bool:
     log("[CHECK4] Infra guardian...")
     ok = True
 
-    # Rotate large log files
+    # Rotate large log files (base names only — skip already-timestamped archives)
     for log_path in LOGS.glob("*.log"):
+        # Skip archive files that already have a timestamp in the stem
+        stem_parts = log_path.stem.split(".")
+        if len(stem_parts) > 1 and stem_parts[-1].isdigit():
+            continue
         size_mb = log_path.stat().st_size / (1024 * 1024)
         if size_mb > LOG_ROTATE_MB:
             archive = log_path.with_suffix(f".{datetime.now().strftime('%Y%m%d%H%M%S')}.log")
-            shutil.move(str(log_path), str(archive))
-            log(f"[CHECK4] Rotated {log_path.name} ({size_mb:.0f}MB) -> {archive.name}")
+            try:
+                shutil.move(str(log_path), str(archive))
+                log(f"[CHECK4] Rotated {log_path.name} ({size_mb:.0f}MB) -> {archive.name}")
+            except Exception as e:
+                log(f"[CHECK4] WARN: Could not rotate {log_path.name}: {e}")
 
     # Disk space
     try:
