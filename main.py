@@ -530,7 +530,6 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                         regime_info, in_session, active_session, summary,
                         next_session=next_sess, circuit_breaker=cb_state)
 
-            import json, os
             if os.path.exists(config.BOT_STATE_FILE):
                 with open(config.BOT_STATE_FILE) as f:
                     sg.push_state(json.load(f))
