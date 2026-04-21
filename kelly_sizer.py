@@ -13,13 +13,13 @@ Rules from ThetaRoom v2:
 import mt5_connector as mt5c
 import config
 
-# Regime-based position size multipliers
+# Regime-based position size multipliers — keys match regime_detector.py output
 REGIME_MULTIPLIERS = {
-    "trending_up":   1.0,
-    "trending_down": 1.0,
-    "ranging":       0.0,   # Don't trade
-    "volatile":      0.5,
-    "crisis":        0.0,   # Don't trade
+    "bull":      1.0,
+    "bear":      1.0,
+    "neutral":   0.0,
+    "crash":     0.0,
+    "euphoria":  0.0,
 }
 
 # Drawdown-based size reduction
