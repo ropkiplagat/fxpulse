@@ -116,6 +116,38 @@ def send_sms_alert(last_updated: str) -> bool:
     return False
 
 
+def send_trade_sms(message: str) -> bool:
+    """Twilio SMS for trade entry/exit events.
+    Uses TWILIO_SID / TWILIO_TOKEN / TWILIO_FROM — matches VPS .env keys.
+    """
+    env         = _load_env()
+    account_sid = env.get("TWILIO_SID") or os.environ.get("TWILIO_SID", "")
+    auth_token  = env.get("TWILIO_TOKEN") or os.environ.get("TWILIO_TOKEN", "")
+    from_number = env.get("TWILIO_FROM") or os.environ.get("TWILIO_FROM", "")
+    if not account_sid or not auth_token or not from_number:
+        print("[SMS] Twilio credentials missing — skipping trade SMS")
+        return False
+    try:
+        url  = f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json"
+        data = urllib.parse.urlencode({
+            "To":   ALERT_PHONE,
+            "From": from_number,
+            "Body": message,
+        }).encode()
+        req   = urllib.request.Request(url, data=data, method="POST")
+        creds = base64.b64encode(f"{account_sid}:{auth_token}".encode()).decode()
+        req.add_header("Authorization", f"Basic {creds}")
+        req.add_header("Content-Type", "application/x-www-form-urlencoded")
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            if resp.status == 201:
+                print(f"[SMS] Trade alert sent to {ALERT_PHONE}")
+                return True
+            print(f"[SMS] Trade alert HTTP {resp.status}")
+    except Exception as e:
+        print(f"[SMS] Trade alert failed: {e}")
+    return False
+
+
 def check_state_age(state_file: str) -> tuple[bool, str]:
     """Returns (is_stale, last_updated_str). Stale = no update for STALE_MINUTES."""
     if not os.path.exists(state_file):
