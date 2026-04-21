@@ -1,10 +1,13 @@
 """
 Trade Manager — lot sizing, SL/TP calculation, partial close, break-even, trailing stop.
 """
+from datetime import datetime, timezone
 import math
 import MetaTrader5 as mt5
 import mt5_connector as mt5c
 import config
+
+_daily_halt_date = None   # UTC date on which the daily -2% limit was hit
 
 
 def calculate_lot_size(symbol: str, sl_distance_price: float) -> float:
@@ -139,14 +142,33 @@ def manage_open_positions():
 
 
 def check_daily_drawdown() -> bool:
-    """Returns True if daily drawdown limit exceeded (halt trading)."""
-    account   = mt5c.get_account_info()
-    if not account:
+    """True if daily -2% loss limit hit. Resets at UTC midnight."""
+    global _daily_halt_date
+    today = datetime.now(timezone.utc).date()
+
+    if _daily_halt_date and _daily_halt_date < today:
+        _daily_halt_date = None   # midnight reset
+
+    if _daily_halt_date == today:
+        return True   # already halted today, stay halted
+
+    if config.PAPER_TRADING:
+        import paper_trader as pt
+        paper  = pt.get_paper_trader()
+        balance = paper.balance
+        equity  = paper.update_equity()
+    else:
+        account = mt5c.get_account_info()
+        if not account:
+            return False
+        balance = account.balance
+        equity  = account.equity
+
+    if balance <= 0:
         return False
-    balance   = account.balance
-    equity    = account.equity
-    drawdown  = (balance - equity) / balance * 100
+    drawdown = (balance - equity) / balance * 100
     if drawdown >= config.MAX_DAILY_DRAWDOWN:
-        print(f"[TM] DRAWDOWN LIMIT HIT: {drawdown:.2f}% >= {config.MAX_DAILY_DRAWDOWN}%")
+        _daily_halt_date = today
+        print(f"[TM] DAILY LIMIT HIT: {drawdown:.2f}% >= {config.MAX_DAILY_DRAWDOWN}% — halted until UTC midnight")
         return True
     return False
