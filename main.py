@@ -7,12 +7,20 @@ Run: python main.py
      python main.py --backtest    (run backtest and exit)
 """
 import sys
+import io
 import time
 import json
 import os
 import ctypes
 import traceback
 from datetime import datetime, timezone, timedelta
+
+# Force UTF-8 stdout/stderr so unicode arrows (▲▼) don't crash when output
+# is redirected to a file on a cp1252 Windows locale
+if hasattr(sys.stdout, 'buffer'):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace', line_buffering=True)
+if hasattr(sys.stderr, 'buffer'):
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace', line_buffering=True)
 
 # Keep console window visible and titled — never minimizes on VPS
 try:
@@ -381,22 +389,25 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                             # ── Close copies on all user accounts ─────────
                             ct.copy_close(symbol, direction)
 
-            # --- Dashboard & state save ---
+            # --- State save + push (always runs before render to guarantee dashboard updates) ---
             account    = mt5c.get_account_info()
             summary    = perf.get_summary()
-
-            dash.render(strength, top_pairs, account, active_signals,
-                        win_probs, consecutive_losses, in_session, active_session)
 
             _save_state(strength, top_pairs, account, win_probs,
                         regime_info, in_session, active_session, summary,
                         next_session=next_sess)
 
-            # Push state to dashboard (direct HTTPS — no token needed)
             import json, os
             if os.path.exists(config.BOT_STATE_FILE):
                 with open(config.BOT_STATE_FILE) as f:
                     sg.push_state(json.load(f))
+
+            # Terminal dashboard render (non-critical — crash here won't block state push)
+            try:
+                dash.render(strength, top_pairs, account, active_signals,
+                            win_probs, consecutive_losses, in_session, active_session)
+            except Exception as render_err:
+                print(f"[DASH] Render error (non-fatal): {render_err}")
 
             # --- Analytics ---
             analytics_metrics = analytics.compute_all()
