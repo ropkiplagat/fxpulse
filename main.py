@@ -144,6 +144,9 @@ def _save_state(strength, top_pairs, account_info, win_probs,
 
 
 def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
+    import threading
+    _pending_model = [None]  # background retrain drops new model here
+
     print("[BOT] Starting trading loop...")
     print(f"[BOT] Mode: {'PAPER TRADING' if config.PAPER_TRADING else 'LIVE TRADING'}")
     ct.log_user_count()
@@ -340,8 +343,11 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                 if last_trade and datetime.now(timezone.utc) - last_trade < timedelta(minutes=config.COOLDOWN_MINUTES):
                     continue
 
-                # Already in position
-                if mt5c.get_open_positions(symbol=symbol):
+                # Already in position (paper: check virtual positions; live: check MT5)
+                if config.PAPER_TRADING:
+                    if paper and paper.get_open_positions(symbol=symbol):
+                        continue
+                elif mt5c.get_open_positions(symbol=symbol):
                     continue
 
                 # --- News filter ---
@@ -551,13 +557,29 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                   f"Sharpe:{analytics_metrics.get('sharpe_ratio', 0):.2f} | "
                   f"ExecLatency:{executor.avg_latency_ms():.0f}ms")
 
-            # --- Retrain ---
+            # Hot-swap model if background retrain completed
+            if _pending_model[0] is not None:
+                xgb_predictor = _pending_model[0]
+                _pending_model[0] = None
+                print("[BOT] XGBoost model hot-swapped from background retrain")
+
+            # --- Retrain (background daemon — main loop never blocks) ---
             if scan_count % config.RETRAIN_EVERY_BARS == 0 and scan_count > 0:
-                print("[BOT] Scheduled retrain...")
-                all_syms = config.MAJOR_CURRENCIES + config.MINOR_CURRENCIES
-                xgb_predictor = ai.train_model(all_syms, available)
-                if LSTM_AVAILABLE and config.USE_LSTM:
-                    lstm_predictor = train_lstm(all_syms, available)
+                if not any(t.name == "RetrainThread" for t in threading.enumerate()):
+                    print("[BOT] Scheduled retrain (background — loop continues)...")
+                    all_syms = config.MAJOR_CURRENCIES + config.MINOR_CURRENCIES
+                    avail_snap = set(available)
+                    def _do_retrain(result_slot, syms, avail):
+                        try:
+                            result_slot[0] = ai.train_model(syms, avail)
+                            print("[BOT] Background retrain complete — hot-swaps next cycle")
+                        except Exception as e:
+                            print(f"[BOT] Retrain failed: {e}")
+                    threading.Thread(
+                        target=_do_retrain,
+                        args=(_pending_model, all_syms, avail_snap),
+                        daemon=True, name="RetrainThread"
+                    ).start()
 
             # --- Key input ---
             key = dash.prompt_action()
