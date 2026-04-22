@@ -83,6 +83,8 @@ def _next_session_info(now_utc: datetime) -> dict:
 
 def _send_emergency_sms(message: str):
     """Send Twilio SMS to Rop for level-4 circuit breaker emergencies."""
+    print(f"[CB] SMS stubbed (Twilio credentials pending): {message[:80]}")
+    return  # Twilio disabled until credentials confirmed — re-enable after token rotation
     import urllib.request, urllib.parse, base64
     try:
         sid   = os.environ.get("TWILIO_SID", "")
