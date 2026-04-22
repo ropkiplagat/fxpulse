@@ -120,6 +120,8 @@ def send_trade_sms(message: str) -> bool:
     """Twilio SMS for trade entry/exit events.
     Uses TWILIO_SID / TWILIO_TOKEN / TWILIO_FROM — matches VPS .env keys.
     """
+    print(f"[SMS] Trade SMS stubbed (Twilio credentials pending): {message[:80]}")
+    return False  # Twilio disabled until credentials confirmed — re-enable after token rotation
     env         = _load_env()
     account_sid = env.get("TWILIO_SID") or os.environ.get("TWILIO_SID", "")
     auth_token  = env.get("TWILIO_TOKEN") or os.environ.get("TWILIO_TOKEN", "")
