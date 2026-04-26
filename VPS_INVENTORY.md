@@ -2,6 +2,8 @@
 Generated: 2026-04-26
 
 ## VPS Access
+- Timezone: UTC
+- Phase 1 deployed: 2026-04-26, 05:30 UTC (15:30 AEST)
 - Host: 161.97.83.167
 - User: Administrator
 - Password: 2VKn282EEqF1c1
@@ -15,8 +17,8 @@ Generated: 2026-04-26
 - Secrets: `C:\fxpulse\.env` (never committed to git)
 - Logs: `C:\fxpulse\logs\`
 - Models: `C:\fxpulse\models\`
-- Bot state: `C:\fxpulse\logs\bot_state.json`
-- Heartbeat: `C:\fxpulse\heartbeat.txt`
+- Bot state: `C:\fxpulse\bot_state.json`
+- Heartbeat: `C:\fxpulse\logs\heartbeat.txt`
 
 ## Python
 - Interpreter: `C:\Python310\python.exe`
@@ -26,6 +28,7 @@ Generated: 2026-04-26
 - Path: `C:\Program Files\Pepperstone MetaTrader 5\terminal64.exe`
 - Account: 61508353
 - Server: Pepperstone-Demo
+- Mode: Hedge
 - Symbols: all use `.a` suffix (e.g. EURUSD.a, GBPUSD.a)
 - Startup shortcut: `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\PepperstoneMT5.lnk`
 
