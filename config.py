@@ -18,9 +18,10 @@ def _load_env():
 _load_env()
 
 # === MT5 Connection ===
-MT5_LOGIN    = int(_os.environ.get("MT5_LOGIN", "0"))
-MT5_PASSWORD = _os.environ.get("MT5_PASSWORD", "")
-MT5_SERVER   = _os.environ.get("MT5_SERVER", "Pepperstone-Demo")
+MT5_LOGIN         = int(_os.environ.get("MT5_LOGIN", "0"))
+MT5_PASSWORD      = _os.environ.get("MT5_PASSWORD", "")
+MT5_SERVER        = _os.environ.get("MT5_SERVER", "Pepperstone-Demo")
+MT5_TERMINAL_PATH = _os.environ.get("MT5_TERMINAL_PATH", r"C:\Program Files\Pepperstone MT5\terminal64.exe")
 
 # Encryption secret — MUST match ENCRYPT_SECRET in deploy/includes/config.php on SiteGround
 MT5_ENCRYPT_SECRET = _os.environ.get("MT5_ENCRYPT_SECRET", "fxpulse-mt5-enc-v1-changeme-on-server")
@@ -47,6 +48,7 @@ NUM_BARS  = 200     # Bars to fetch per symbol
 # === Risk Management ===
 RISK_PERCENT          = 0.5    # % of account per trade (Bethwel trial spec)
 MAX_DAILY_DRAWDOWN    = 2.0    # % — halt new entries if daily P&L hits -2%
+MAX_CONCURRENT_TRADES = 6      # Max simultaneous open positions (Bethwel trial spec)
 MAX_SPREAD_PIPS       = 3.0    # Skip trade if spread > this
 MARGIN_MIN_FREE_RATIO = 0.30   # Skip all trades if free_margin/equity < 30%
 MAGIC_NUMBER          = 20001
