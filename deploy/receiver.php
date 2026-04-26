@@ -18,7 +18,7 @@ session_start();
 // =========================================================
 
 $API_KEY   = "CHANGE_THIS_TO_A_SECRET_KEY_123"; // Must match config.py SITEGROUND_API_KEY
-$DATA_FILE = __DIR__ . "/data/bot_state.json";
+$DATA_FILE = __DIR__ . "/bot_state.json";
 
 /**
  * USER ACCOUNTS
