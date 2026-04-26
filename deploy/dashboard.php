@@ -746,9 +746,9 @@ body{overflow-x:hidden;}
   // Session open hours in UTC: [openH, closeH]
   // closeH < openH means session wraps midnight
   var SESSIONS = {
-    sydStatus: { o:22, c:7,  cd:'sydCd',  fxp:false },
-    tkyStatus: { o:0,  c:9,  cd:'tkyCd',  fxp:false },
-    lonStatus: { o:8,  c:17, cd:'lonCd',  fxp:true  },
+    sydStatus: { o:21, c:6,  cd:'sydCd',  fxp:false },
+    tkyStatus: { o:23, c:8,  cd:'tkyCd',  fxp:false },
+    lonStatus: { o:7,  c:16, cd:'lonCd',  fxp:true  },
     nyStatus:  { o:13, c:22, cd:'nyCd',   fxp:true  },
   };
 
@@ -790,7 +790,7 @@ body{overflow-x:hidden;}
     // Next session headline
     var lbl = document.getElementById('nextSessLabel');
     if (!lbl) return;
-    var lonOpen = isOpen(utcH, 8,  17);
+    var lonOpen = isOpen(utcH, 7,  16);
     var nyOpen  = isOpen(utcH, 13, 22);
     if (lonOpen && nyOpen) {
       lbl.innerHTML = '&#9679; London &amp; New York sessions are OPEN &mdash; bot is scanning for setups';
@@ -802,18 +802,19 @@ body{overflow-x:hidden;}
       lbl.innerHTML = '&#9679; New York session is OPEN &mdash; bot is scanning for setups';
       lbl.style.color = '#3fb950';
     } else {
-      var mLon = minsUntil(nowMin, 8);
+      var mLon = minsUntil(nowMin, 7);
       var mNY  = minsUntil(nowMin, 13);
       lbl.style.color = '#f0b429';
       if (mLon <= mNY) {
-        lbl.innerHTML = '&#9201; Next session: <strong>London</strong> opens at ' + fmtAEST(8) + ' (08:00 UTC) &mdash; ' + fmtMins(mLon);
+        lbl.innerHTML = '&#9201; Next session: <strong>London</strong> opens at ' + fmtAEST(7) + ' (07:00 UTC) &mdash; ' + fmtMins(mLon);
       } else {
-        lbl.innerHTML = '&#9201; Next session: <strong>New York</strong> opens at ' + fmtAEST(13) + ' (11:00 PM AEST / 13:00 UTC) &mdash; ' + fmtMins(mNY);
+        lbl.innerHTML = '&#9201; Next session: <strong>New York</strong> opens at ' + fmtAEST(13) + ' (01:00 AM AEST / 13:00 UTC) &mdash; ' + fmtMins(mNY);
       }
     }
   }
 
-  if (document.getElementById('lonStatus')) { tick(); setInterval(tick, 30000); }
+  function init() { if (document.getElementById('lonStatus')) { tick(); setInterval(tick, 30000); } }
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();
 </script>
 </body>
