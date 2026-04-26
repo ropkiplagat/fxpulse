@@ -94,9 +94,9 @@ PERFORMANCE_FILE = "logs/performance.csv"
 SIGNAL_LOG_FILE  = "logs/signals.csv"
 BOT_STATE_FILE   = "logs/bot_state.json"
 
-# === Telegram Alerts (optional) ===
-TELEGRAM_TOKEN   = ""   # Get from @BotFather
-TELEGRAM_CHAT_ID = ""   # Your chat ID (message @userinfobot)
+# === Telegram Alerts ===
+TELEGRAM_TOKEN       = _os.environ.get("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_SUBSCRIBERS = _os.environ.get("TELEGRAM_SUBSCRIBERS", "")  # comma-separated chat_ids
 
 # === LSTM Ensemble ===
 USE_LSTM = False        # Disabled — TensorFlow training hangs on this VPS; XGBoost sufficient
