@@ -19,19 +19,28 @@ _TIMEFRAME_MAP = {
 
 
 def connect():
-    """Initialize MT5 connection with credentials from config."""
-    kwargs = {}
-    if config.MT5_LOGIN:
-        kwargs = {
-            "login":    config.MT5_LOGIN,
-            "password": config.MT5_PASSWORD,
-            "server":   config.MT5_SERVER,
-        }
-    if not mt5.initialize(**kwargs):
-        raise RuntimeError(f"MT5 init failed: {mt5.last_error()}")
-    info = mt5.account_info()
-    print(f"[MT5] Connected: {info.name} | {info.server} | Balance: {info.balance:.2f} {info.currency}")
-    return info
+    """Initialize MT5 connection. Passes path so terminal launches if not running (Pattern A)."""
+    import time as _time
+    kwargs = {
+        "login":    config.MT5_LOGIN,
+        "password": config.MT5_PASSWORD,
+        "server":   config.MT5_SERVER,
+        "timeout":  60000,
+    }
+    if config.MT5_TERMINAL_PATH:
+        kwargs["path"] = config.MT5_TERMINAL_PATH
+
+    for attempt in range(1, 6):
+        if mt5.initialize(**kwargs):
+            info = mt5.account_info()
+            print(f"[MT5] Connected: {info.name} | {info.server} | Balance: {info.balance:.2f} {info.currency}")
+            return info
+        err = mt5.last_error()
+        print(f"[MT5] Init attempt {attempt}/5 failed: {err}")
+        if attempt < 5:
+            _time.sleep(30)
+
+    raise RuntimeError(f"MT5 init failed after 5 attempts: {mt5.last_error()}")
 
 
 def disconnect():
