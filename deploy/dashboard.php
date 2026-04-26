@@ -319,6 +319,7 @@ body{overflow-x:hidden;}
   </a>
   <div class="hdr-right">
     <span class="hdr-user"><?= htmlspecialchars($user['name']) ?></span>
+    <a href="guide.html" class="hdr-admin" style="border-color:var(--border);">Guide</a>
     <?php if ($user['role'] === 'admin'): ?>
       <a href="admin/" class="hdr-admin">Admin Panel</a>
     <?php endif; ?>

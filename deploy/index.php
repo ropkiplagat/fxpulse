@@ -858,6 +858,7 @@ footer {
       <a href="#how">How It Works</a>
       <a href="#performance">Performance</a>
       <a href="dashboard.php">Dashboard</a>
+      <a href="guide.html">Trader's Guide</a>
     </div>
     <div class="foot-col">
       <h4>Access</h4>
