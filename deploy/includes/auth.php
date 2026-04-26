@@ -50,6 +50,7 @@ function login(string $username, string $password): string {
     if (!password_verify($password, $user['hash'])) return 'invalid';
     if ($user['status'] === STATUS_PENDING)  return 'pending';
     if ($user['status'] === STATUS_REJECTED) return 'rejected';
+    if (!($user['email_confirmed'] ?? false)) return 'unconfirmed';
 
     session_init();
     session_regenerate_id(true);
