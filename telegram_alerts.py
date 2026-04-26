@@ -6,36 +6,38 @@ import requests
 from datetime import datetime, timezone
 import config
 
-TELEGRAM_TOKEN   = ""   # Set in config.py or directly here
-TELEGRAM_CHAT_ID = ""   # Your personal chat ID
-
-
 def _get_token() -> str:
-    return getattr(config, "TELEGRAM_TOKEN", TELEGRAM_TOKEN)
+    return getattr(config, "TELEGRAM_TOKEN", "")
 
 
-def _get_chat_id() -> str:
-    return getattr(config, "TELEGRAM_CHAT_ID", TELEGRAM_CHAT_ID)
+def _get_subscribers() -> list:
+    raw = getattr(config, "TELEGRAM_SUBSCRIBERS", "") or getattr(config, "TELEGRAM_CHAT_ID", "")
+    return [c.strip() for c in str(raw).split(",") if c.strip()]
 
 
 def _send(message: str) -> bool:
-    token   = _get_token()
-    chat_id = _get_chat_id()
-
-    if not token or not chat_id:
-        return False  # Telegram not configured
-
-    try:
-        url  = f"https://api.telegram.org/bot{token}/sendMessage"
-        resp = requests.post(url, data={
-            "chat_id":    chat_id,
-            "text":       message,
-            "parse_mode": "Markdown",
-        }, timeout=5)
-        return resp.status_code == 200
-    except Exception as e:
-        print(f"[TG] Send failed: {e}")
+    token = _get_token()
+    if not token:
         return False
+    subscribers = _get_subscribers()
+    if not subscribers:
+        return False
+    ok = True
+    for chat_id in subscribers:
+        try:
+            url  = f"https://api.telegram.org/bot{token}/sendMessage"
+            resp = requests.post(url, data={
+                "chat_id":    chat_id,
+                "text":       message,
+                "parse_mode": "Markdown",
+            }, timeout=5)
+            if resp.status_code != 200:
+                print(f"[TG] Failed {chat_id[:4]}...: HTTP {resp.status_code}")
+                ok = False
+        except Exception as e:
+            print(f"[TG] Send failed {chat_id[:4]}...: {e}")
+            ok = False
+    return ok
 
 
 def alert_trade_opened(symbol: str, direction: str, lot: float,
