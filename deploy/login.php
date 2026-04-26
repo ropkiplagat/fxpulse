@@ -3,12 +3,26 @@ require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/auth.php';
 
 session_init();
-if (is_logged_in()) { header('Location: dashboard.php'); exit; }
+if (is_logged_in()) {
+    require_once __DIR__ . '/includes/mt5_accounts.php';
+    $_u = $_SESSION['user'] ?? '';
+    $dest = ($_SESSION['role'] ?? '') === ROLE_ADMIN || has_active_mt5_account($_u)
+        ? 'dashboard.php'
+        : 'connect-mt5.php?new=1';
+    header("Location: $dest"); exit;
+}
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $result = login(trim($_POST['username'] ?? ''), $_POST['password'] ?? '');
-    if ($result === 'ok')          { header('Location: dashboard.php'); exit; }
+    $username = trim($_POST['username'] ?? '');
+    $result = login($username, $_POST['password'] ?? '');
+    if ($result === 'ok') {
+        require_once __DIR__ . '/includes/mt5_accounts.php';
+        $dest = ($_SESSION['role'] ?? '') === ROLE_ADMIN || has_active_mt5_account($username)
+            ? 'dashboard.php'
+            : 'connect-mt5.php?new=1';
+        header("Location: $dest"); exit;
+    }
     if ($result === 'pending')     $error = 'Your account is pending approval. Check back soon.';
     if ($result === 'rejected')    $error = 'Your account was not approved. Contact support.';
     if ($result === 'unconfirmed') $error = 'Please confirm your email before signing in. Check your inbox for the confirmation link.';
