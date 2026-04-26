@@ -10,10 +10,15 @@ define('BOT_FILE',         DATA_DIR . 'bot_state.json');
 define('LOGS_FILE',        DATA_DIR . 'activity.log');
 define('MT5_ACCOUNTS_FILE',  DATA_DIR . 'mt5_accounts.json');
 define('USER_STATES_DIR',   DATA_DIR . 'user_states/');
+define('TOKENS_FILE',      DATA_DIR . 'tokens.json');
 define('MAX_USERS',         100);
 
+// Site identity (used in emails)
+define('SITE_URL',    'https://myforexpulse.com');
+define('FROM_EMAIL',  'noreply@myforexpulse.com');
+define('FROM_NAME',   'FXPulse');
+
 // AES-256-CBC encryption key for MT5 passwords at rest
-// CHANGE this to a unique secret on your server — never commit the real value
 define('ENCRYPT_SECRET',   'fxpulse-mt5-enc-v1-changeme-on-server');
 
 // Bot push API key — must match config.py SITEGROUND_API_KEY
