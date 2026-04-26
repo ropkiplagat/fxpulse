@@ -21,7 +21,7 @@ _load_env()
 MT5_LOGIN         = int(_os.environ.get("MT5_LOGIN", "0"))
 MT5_PASSWORD      = _os.environ.get("MT5_PASSWORD", "")
 MT5_SERVER        = _os.environ.get("MT5_SERVER", "Pepperstone-Demo")
-MT5_TERMINAL_PATH = _os.environ.get("MT5_TERMINAL_PATH", r"C:\Program Files\Pepperstone MT5\terminal64.exe")
+MT5_TERMINAL_PATH = _os.environ.get("MT5_TERMINAL_PATH", r"C:\Program Files\Pepperstone MetaTrader 5\terminal64.exe")
 
 # Encryption secret — MUST match ENCRYPT_SECRET in deploy/includes/config.php on SiteGround
 MT5_ENCRYPT_SECRET = _os.environ.get("MT5_ENCRYPT_SECRET", "fxpulse-mt5-enc-v1-changeme-on-server")
