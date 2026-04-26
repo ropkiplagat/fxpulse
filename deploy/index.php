@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/auth.php';
 session_init();
-if (is_logged_in()) { header('Location: dashboard.php'); exit; }
+$logged_in = is_logged_in();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -69,18 +69,18 @@ nav {
 }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 .nav-links { display: flex; align-items: center; gap: 32px; }
-.nav-links a { color: var(--muted); text-decoration: none; font-size: .9em; transition: color .2s; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 1em; transition: color .2s; }
 .nav-links a:hover { color: var(--text); }
 .nav-cta { display: flex; gap: 10px; align-items: center; }
 .btn-ghost-sm {
-  padding: 8px 20px; border: 1px solid var(--border-hi); border-radius: 6px;
-  color: var(--text); text-decoration: none; font-size: .88em; font-weight: 500;
+  padding: 9px 22px; border: 1px solid var(--border-hi); border-radius: 6px;
+  color: var(--text); text-decoration: none; font-size: 1em; font-weight: 500;
   transition: border-color .2s, color .2s;
 }
 .btn-ghost-sm:hover { border-color: var(--accent); color: var(--accent); }
 .btn-accent-sm {
-  padding: 8px 20px; background: var(--accent); border-radius: 6px;
-  color: #000; text-decoration: none; font-size: .88em; font-weight: 700;
+  padding: 9px 22px; background: var(--accent); border-radius: 6px;
+  color: #000; text-decoration: none; font-size: 1em; font-weight: 700;
   transition: opacity .2s;
 }
 .btn-accent-sm:hover { opacity: .85; }
@@ -90,7 +90,7 @@ nav {
 ═══════════════════════════════════════════════ */
 .hero {
   min-height: 100vh;
-  display: grid; grid-template-columns: 1fr 1fr; align-items: center;
+  display: flex; align-items: center;
   gap: 60px; padding: 120px 80px 80px;
   position: relative; overflow: hidden;
   background:
@@ -145,7 +145,8 @@ nav {
 .trust-item svg { color: var(--accent2); }
 
 /* HERO TERMINAL */
-.hero-visual { position: relative; z-index: 1; }
+.hero-content { flex: 0 0 34%; max-width: 34%; }
+.hero-visual  { flex: 0 0 66%; max-width: 66%; position: relative; z-index: 1; }
 .terminal {
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: 12px; overflow: hidden;
@@ -405,7 +406,8 @@ footer {
    RESPONSIVE
 ═══════════════════════════════════════════════ */
 @media(max-width: 1024px) {
-  .hero { grid-template-columns: 1fr; padding: 100px 40px 60px; }
+  .hero { flex-direction: column; padding: 100px 40px 60px; align-items: flex-start; }
+  .hero-content { flex: 1 0 100%; max-width: 100%; width: 100%; }
   .hero-visual { display: none; }
   .stats-strip { grid-template-columns: repeat(2,1fr); }
   .stat-item:nth-child(2) { border-right: none; }
@@ -421,16 +423,78 @@ footer {
 @media(max-width: 640px) {
   nav { padding: 0 20px; }
   .nav-links { display: none; }
-  .hero { padding: 90px 20px 50px; }
+  .hero { padding: 80px 20px 48px; }
+  .hero-content { flex: 1 0 100%; max-width: 100%; width: 100%; }
+  .hero-sub { max-width: 100%; font-size: .97em; }
+  .hero-btns { flex-direction: column; width: 100%; }
+  .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+  .hero-trust { flex-direction: column; gap: 10px; }
   .features-grid { grid-template-columns: 1fr; }
   .stats-strip { grid-template-columns: 1fr 1fr; }
-  section { padding: 60px 20px; }
+  .steps { grid-template-columns: 1fr; }
+  .perf-cards { grid-template-columns: 1fr; }
+  .access-grid { grid-template-columns: 1fr; }
+  section { padding: 52px 20px; }
+  .section-title { font-size: clamp(1.6em, 6vw, 2.4em); }
   .foot-top { grid-template-columns: 1fr; }
   footer { padding: 40px 20px 24px; }
-  .cta-band { padding: 60px 20px; }
+  .cta-band { padding: 52px 20px; }
+  .cta-buttons { flex-direction: column; align-items: center; }
+  .cta-buttons a { width: 100%; max-width: 320px; text-align: center; justify-content: center; }
   .foot-bottom { flex-direction: column; gap: 12px; }
   .foot-risk { text-align: left; }
+  .hero-label { font-size: .78em; }
 }
+
+/* ═══════════════════════════════════════════════
+   BLOOMBERG TERMINAL
+═══════════════════════════════════════════════ */
+.bb-wrap { background:#0a0e17; font-family:var(--mono); display:flex; flex-direction:column; }
+.bb-topbar {
+  display:flex; align-items:center; gap:10px; padding:9px 14px;
+  background:#070b12; border-bottom:1px solid #1a2535;
+  font-size:.72em; flex-wrap:wrap;
+}
+.bb-logo { color:#00d4ff; font-weight:700; letter-spacing:.06em; margin-right:4px; }
+.bb-pair { color:#e2eaf3; font-weight:600; }
+.bb-price { color:#00ff88; font-size:1.1em; font-weight:700; }
+.bb-chg { padding:2px 6px; border-radius:3px; font-size:.9em; font-weight:600; }
+.bb-chg.up   { background:rgba(0,200,83,.18); color:#00c853; }
+.bb-chg.down { background:rgba(255,61,87,.18); color:#ff3d57; }
+.bb-clock { margin-left:auto; color:#6b8299; letter-spacing:.04em; }
+.bb-main {
+  display:grid; grid-template-columns:1fr 180px;
+  flex:1; min-height:220px;
+}
+.bb-chart-col { padding:10px 12px 8px; display:flex; flex-direction:column; }
+.bb-chart-label { font-size:.65em; color:#6b8299; margin-bottom:4px; }
+.bb-chart-col canvas { flex:1; width:100% !important; height:100% !important; }
+.bb-right-col {
+  border-left:1px solid #1a2535; display:flex; flex-direction:column;
+}
+.bb-section { padding:8px 10px; border-bottom:1px solid #1a2535; }
+.bb-section-title { font-size:.6em; color:#00d4ff; letter-spacing:.08em; margin-bottom:6px; text-transform:uppercase; }
+.bb-bar-row { display:flex; align-items:center; gap:5px; margin-bottom:3px; font-size:.62em; }
+.bb-bar-sym { width:26px; color:#e2eaf3; flex-shrink:0; }
+.bb-bar-track { flex:1; height:4px; background:#1a2535; border-radius:2px; overflow:hidden; }
+.bb-bar-fill { height:100%; border-radius:2px; transition:width .6s ease; }
+.bb-bar-val { width:22px; text-align:right; color:#6b8299; font-size:.95em; }
+.bb-signal-box { padding:8px 10px; border-bottom:1px solid #1a2535; }
+.bb-signal-title { font-size:.6em; color:#00d4ff; letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px; }
+.bb-signal-row { display:flex; align-items:center; gap:6px; font-size:.65em; }
+.bb-signal-sym { color:#e2eaf3; font-weight:600; }
+.bb-signal-dir { padding:2px 5px; border-radius:2px; font-weight:700; font-size:.95em; background:rgba(0,200,83,.2); color:#00c853; }
+.bb-signal-conf { color:#f0c040; }
+.bb-conf-bar { height:3px; background:#1a2535; border-radius:2px; margin-top:4px; overflow:hidden; }
+.bb-conf-fill { height:100%; background:linear-gradient(90deg,#00c853,#f0c040); border-radius:2px; transition:width .8s ease; }
+.bb-pnl-box { padding:8px 10px; flex:1; }
+.bb-pnl-title { font-size:.6em; color:#00d4ff; letter-spacing:.08em; text-transform:uppercase; margin-bottom:5px; }
+.bb-pnl-amount { font-size:1.1em; color:#00c853; font-weight:700; letter-spacing:.02em; }
+.bb-pnl-detail { font-size:.6em; color:#6b8299; margin-top:2px; line-height:1.5; }
+.bb-pnl-blink { display:inline-block; width:6px; height:6px; border-radius:50%; background:#00c853; margin-right:4px; animation:bb-pulse 1.2s ease-in-out infinite; }
+@keyframes bb-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.7)} }
+@keyframes fp-blink{0%,100%{opacity:1}50%{opacity:0.2}}
+@keyframes fp-scroll{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}
 </style>
 </head>
 <body>
@@ -448,10 +512,88 @@ footer {
     <a href="#faq">FAQ</a>
   </div>
   <div class="nav-cta">
-    <a href="login.php" class="btn-ghost-sm">Sign In</a>
-    <a href="register.php" class="btn-accent-sm">Get Access</a>
+    <?php if ($logged_in): ?>
+      <a href="dashboard.php" class="btn-ghost-sm">Dashboard</a>
+      <a href="logout.php" class="btn-accent-sm">Sign Out</a>
+    <?php else: ?>
+      <a href="login.php" class="btn-ghost-sm">Sign In</a>
+      <a href="register.php" class="btn-accent-sm">Get Access</a>
+    <?php endif; ?>
   </div>
 </nav>
+
+<!-- ═══════════════════════════════════════════════
+     DISCLAIMER MODAL — shown on first visit
+═══════════════════════════════════════════════ -->
+<style>
+.disc-overlay{
+  position:fixed;inset:0;z-index:9999;
+  background:rgba(4,6,12,0.92);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  backdrop-filter:blur(8px);
+}
+.disc-box{
+  background:#0d1117;border:1px solid #2a4060;border-radius:14px;
+  max-width:640px;width:100%;padding:40px 44px;
+  box-shadow:0 40px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(0,212,255,0.06);
+}
+.disc-eyebrow{
+  font-size:9px;letter-spacing:3px;text-transform:uppercase;
+  color:#00d4ff;margin-bottom:12px;opacity:0.8;
+  display:flex;align-items:center;gap:8px;
+}
+.disc-eyebrow::before{content:'⚠';font-size:14px;letter-spacing:0}
+.disc-title{font-size:22px;font-weight:700;color:#e2eaf3;margin-bottom:20px;line-height:1.2;letter-spacing:-0.3px}
+.disc-body{font-size:13px;color:#6b8299;line-height:1.75;border:1px solid #1e2d3d;border-radius:8px;padding:18px 20px;margin-bottom:22px;max-height:260px;overflow-y:auto}
+.disc-body p{margin-bottom:12px}
+.disc-body p:last-child{margin-bottom:0}
+.disc-body strong{color:#c8d8ed}
+.disc-check{display:flex;align-items:flex-start;gap:12px;margin-bottom:24px}
+.disc-check input[type=checkbox]{width:16px;height:16px;flex-shrink:0;margin-top:2px;accent-color:#00d4ff;cursor:pointer}
+.disc-check label{font-size:13px;color:#8a9bb0;cursor:pointer;line-height:1.6}
+.disc-check label a{color:#00d4ff;text-decoration:none}
+.disc-btn{
+  width:100%;padding:14px;border:none;border-radius:8px;cursor:pointer;
+  background:linear-gradient(135deg,#00d4ff 0%,#0097b3 100%);
+  color:#000;font-size:14px;font-weight:700;letter-spacing:0.4px;
+  transition:opacity 0.2s,transform 0.15s;
+  font-family:'Space Grotesk',sans-serif;
+}
+.disc-btn:hover{opacity:0.9;transform:translateY(-1px)}
+.disc-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+</style>
+<div class="disc-overlay" id="discModal" style="display:none">
+  <div class="disc-box">
+    <div class="disc-eyebrow">Important Notice — Read Before Continuing</div>
+    <div class="disc-title">Risk Disclaimer &amp; Terms of Use</div>
+    <div class="disc-body">
+      <p><strong>FXPulse is an algorithmic trading tool, not a financial advisory service.</strong></p>
+      <p>Trading foreign exchange (forex) and contracts for difference (CFDs) carries a high level of risk and may not be suitable for all investors. The value of your investments can go down as well as up, and you may lose more than your initial deposit.</p>
+      <p><strong>We are not financial advisors.</strong> Nothing on this platform constitutes financial advice, investment recommendations, or a solicitation to buy or sell any financial instrument. All signals, predictions, and trade suggestions generated by FXPulse are based purely on algorithmic analysis of historical and live market data.</p>
+      <p><strong>Past performance does not guarantee future results.</strong> Backtest results and paper trading statistics are provided for informational purposes only and do not reflect actual live trading outcomes.</p>
+      <p><strong>You trade at your own risk.</strong> By using this portal you acknowledge that: (1) you understand the risks involved in forex and CFD trading; (2) you accept full responsibility for all trading decisions executed through your connected MT5 account; (3) FXPulse, its developers, and associated parties accept no liability for any financial losses you may incur.</p>
+      <p><strong>What others have done does not guarantee what you will achieve.</strong> Any results referenced on this platform — including win rates, equity curves, and profit figures — relate to specific accounts under specific conditions and are not representative of typical user outcomes.</p>
+      <p>By proceeding, you confirm you have read, understood, and agree to these terms. If you do not agree, please close this site and do not use this portal.</p>
+    </div>
+    <div class="disc-check">
+      <input type="checkbox" id="discAgree" onchange="document.getElementById('discAccept').disabled=!this.checked">
+      <label for="discAgree">I have read and understood the risk disclaimer. I accept full responsibility for any trading decisions made using FXPulse and acknowledge this is not financial advice.</label>
+    </div>
+    <button class="disc-btn" id="discAccept" disabled onclick="acceptDisclaimer()">I Understand &mdash; Continue to FXPulse</button>
+  </div>
+</div>
+<script>
+(function(){
+  if (!localStorage.getItem('fxp_disc_accepted')) {
+    document.getElementById('discModal').style.display = 'flex';
+  }
+})();
+function acceptDisclaimer(){
+  localStorage.setItem('fxp_disc_accepted','1');
+  document.getElementById('discModal').style.display='none';
+}
+</script>
 
 <!-- HERO -->
 <section class="hero">
@@ -488,36 +630,82 @@ footer {
     </div>
   </div>
   <div class="hero-visual">
-    <div class="terminal">
-      <div class="terminal-bar">
-        <div class="t-dot" style="background:#ff5f57"></div>
-        <div class="t-dot" style="background:#febc2e"></div>
-        <div class="t-dot" style="background:#28c840"></div>
-        <span style="margin-left:10px;font-family:var(--mono);font-size:.72em;color:var(--muted);">fxpulse — live scan</span>
+<!-- FXPulse Bloomberg Terminal Widget -->
+<div style="background:#0a0e17;border-radius:10px;overflow:hidden;font-family:'Courier New',monospace;color:#c8d0e0;width:100%">
+  <div style="background:#0d1420;border-bottom:1px solid #1e2a3a;padding:8px 16px;display:flex;align-items:center;gap:16px;font-size:11px">
+    <span style="color:#f90;font-weight:700;font-size:13px;letter-spacing:2px;margin-right:8px">FXPULSE</span>
+    <span style="color:#fff;font-size:12px;font-weight:700">AUD/USD</span>
+    <span style="color:#00e676;font-size:14px;font-weight:700;font-family:'Courier New',monospace" id="fp-live-price">0.6384</span>
+    <span style="font-size:11px;padding:2px 6px;border-radius:3px;background:#0a3320;color:#00e676" id="fp-live-chg">+0.0026 +0.41%</span>
+    <span style="color:#4a6080;font-size:10px">SIGNAL ACTIVE</span>
+    <span style="display:flex;align-items:center;gap:5px;color:#00e676;font-size:10px;margin-left:auto">
+      <span style="width:6px;height:6px;border-radius:50%;background:#00e676;display:inline-block;animation:fp-blink 1s infinite"></span>LIVE
+    </span>
+    <span style="color:#4a6080;font-size:11px" id="fp-clock">--:--:-- UTC</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 260px;min-height:440px">
+    <div style="position:relative;background:#0a0e17;border-right:1px solid #1e2a3a;padding:12px 16px 8px">
+      <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:8px">
+        <div>
+          <div style="font-size:13px;color:#e0e8f0;font-weight:700;letter-spacing:1px">AUD/USD <span style="font-size:11px;color:#4a6080">SPOT</span></div>
+          <div style="font-size:26px;color:#00e676;font-weight:700;font-family:'Courier New',monospace" id="fp-big-price">0.6384</div>
+          <div style="font-size:11px;color:#4a6080;margin-top:2px">BID <span style="color:#c8d0e0" id="fp-bid">0.6383</span> &nbsp; ASK <span style="color:#c8d0e0" id="fp-ask">0.6385</span> &nbsp; SPREAD <span style="color:#4a6080">0.2</span></div>
+        </div>
+        <div style="display:flex;gap:4px;margin-left:auto">
+          <span style="background:#141c2a;border:1px solid #1e2a3a;color:#4a6080;font-size:10px;padding:3px 8px;border-radius:3px;font-family:'Courier New',monospace">1M</span>
+          <span style="background:#141c2a;border:1px solid #1e2a3a;color:#4a6080;font-size:10px;padding:3px 8px;border-radius:3px;font-family:'Courier New',monospace">5M</span>
+          <span style="background:#1e3a5a;border:1px solid #378add;color:#80b8f0;font-size:10px;padding:3px 8px;border-radius:3px;font-family:'Courier New',monospace">15M</span>
+          <span style="background:#141c2a;border:1px solid #1e2a3a;color:#4a6080;font-size:10px;padding:3px 8px;border-radius:3px;font-family:'Courier New',monospace">1H</span>
+        </div>
       </div>
-      <div class="terminal-body">
-        <div class="t-line t-muted">═══════════════════════════════════</div>
-        <div class="t-line"><span class="t-blue">CURRENCY STRENGTH</span> <span class="t-muted">15:42:07 UTC</span></div>
-        <div class="t-line t-muted">───────────────────────────────────</div>
-        <div class="t-line"><span class="t-muted">#1</span> <span class="t-green">USD  ▲  +0.0024</span> <span class="t-muted">████████</span></div>
-        <div class="t-line"><span class="t-muted">#2</span> <span class="t-green">GBP  ▲  +0.0018</span> <span class="t-muted">██████</span></div>
-        <div class="t-line"><span class="t-muted">#3</span> <span class="t-white">EUR  ─  +0.0003</span> <span class="t-muted">██</span></div>
-        <div class="t-line"><span class="t-muted">#6</span> <span class="t-red">JPY  ▼  -0.0019</span> <span class="t-muted">██████</span></div>
-        <div class="t-line"><span class="t-muted">#8</span> <span class="t-red">NZD  ▼  -0.0031</span> <span class="t-muted">█████████</span></div>
-        <div class="t-line t-muted" style="margin-top:8px;">───────────────────────────────────</div>
-        <div class="t-line"><span class="t-blue">TOP SETUP</span> <span class="t-gold">USDJPY.a</span></div>
-        <div class="t-line"><span class="t-muted">  Direction:</span> <span class="t-green">BUY</span></div>
-        <div class="t-line"><span class="t-muted">  AI Confidence:</span> <span class="t-green">78.4%</span> <span class="t-muted">✓ &gt;65% threshold</span></div>
-        <div class="t-line"><span class="t-muted">  Gap:</span> <span class="t-gold">+0.0043</span></div>
-        <div class="t-line"><span class="t-muted">  Regime:</span> <span class="t-green">TRENDING</span></div>
-        <div class="t-line t-muted" style="margin-top:8px;">───────────────────────────────────</div>
-        <div class="t-line t-green">✓ ORDER PLACED — 0.02 lots @ 157.842</div>
-        <div class="t-line t-muted">  SL: 157.562 | TP: 158.402 | R:R 2:1</div>
-      </div>
-      <div class="chart-container">
-        <canvas id="heroChart" height="100"></canvas>
+      <canvas id="fp-chart" style="width:100%;height:280px;display:block"></canvas>
+      <div style="display:flex;gap:16px;padding:6px 0;border-top:1px solid #1e2a3a;margin-top:4px">
+        <span style="font-size:10px;color:#4a6080">O<span style="color:#c8d0e0;margin-left:4px">0.6361</span></span>
+        <span style="font-size:10px;color:#4a6080">H<span style="color:#c8d0e0;margin-left:4px" id="fp-high">0.6398</span></span>
+        <span style="font-size:10px;color:#4a6080">L<span style="color:#c8d0e0;margin-left:4px">0.6354</span></span>
+        <span style="font-size:10px;color:#4a6080">C<span style="color:#c8d0e0;margin-left:4px" id="fp-close">0.6384</span></span>
+        <span style="font-size:10px;color:#4a6080">VOL<span style="color:#c8d0e0"> 4.2B</span></span>
+        <span style="font-size:10px;color:#4a6080">MA20<span style="color:#f90"> 0.6371</span></span>
+        <span style="font-size:10px;color:#4a6080;margin-left:auto">RSI<span style="color:#00e676"> 58.4</span></span>
       </div>
     </div>
+
+    <div style="display:flex;flex-direction:column;background:#0d1420;overflow:visible">
+      <div style="border-bottom:1px solid #1e2a3a;padding:10px 12px">
+        <div style="font-size:12px;letter-spacing:2px;color:#4a6080;text-transform:uppercase;margin-bottom:8px;border-bottom:1px solid #1e2a3a;padding-bottom:5px">Currency Strength</div>
+        <div id="fp-strength"></div>
+      </div>
+      <div style="flex:1;padding:10px 12px;overflow:visible">
+        <div style="font-size:12px;letter-spacing:2px;color:#4a6080;text-transform:uppercase;margin-bottom:8px;border-bottom:1px solid #1e2a3a;padding-bottom:5px">AI Signal</div>
+        <div style="background:#0a1a0a;border:1px solid #1a4a1a;border-radius:4px;padding:8px">
+          <div>
+            <span style="color:#00e676;font-size:16px;font-weight:700;letter-spacing:1px">AUD/USD</span>
+            <span style="display:inline-block;background:#00e676;color:#000;font-size:12px;font-weight:700;padding:4px 10px;border-radius:2px;margin-left:6px">BUY</span>
+          </div>
+          <div style="font-size:13px;color:#4a6080;margin-top:4px;display:flex;justify-content:space-between"><span>Confidence</span><span style="color:#80c8a0" id="fp-conf-pct">71.2%</span></div>
+          <div style="height:3px;background:#1e2a3a;border-radius:2px;margin-top:4px;overflow:hidden"><div id="fp-conf-bar" style="height:100%;background:#00e676;border-radius:2px;width:71%;transition:width 0.8s"></div></div>
+          <div style="font-size:12px;color:#4a6080;margin-top:4px;display:flex;justify-content:space-between"><span>Regime</span><span style="color:#80c8a0">TRENDING</span></div>
+          <div style="font-size:12px;color:#4a6080;display:flex;justify-content:space-between"><span>Gap</span><span style="color:#80c8a0">+0.0043</span></div>
+          <div style="font-size:12px;color:#4a6080;display:flex;justify-content:space-between"><span>ADX</span><span style="color:#80c8a0">29.8</span></div>
+        </div>
+        <div style="background:#0d1a2a;border-left:3px solid #378add;padding:6px 8px;margin-top:8px">
+          <div style="color:#378add;font-weight:700;font-size:13px">ORDER FILLED</div>
+          <div style="color:#4a8080;margin-top:3px;font-size:12px;line-height:1.8">
+            0.10 lots @ <span style="color:#80b8c0" id="fp-entry">0.6384</span><br>
+            SL <span style="color:#80b8c0">0.6354</span> &nbsp; TP <span style="color:#80b8c0">0.6444</span><br>
+            R:R <span style="color:#80b8c0">2:1</span> &nbsp; PnL <span id="fp-pnl" style="color:#00e676">+$0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#060a10;border-top:1px solid #1e2a3a;padding:6px 16px;overflow:hidden;white-space:nowrap">
+    <div id="fp-ticker" style="display:inline-flex;gap:24px;animation:fp-scroll 25s linear infinite"></div>
+    <div id="fp-ticker2" style="display:inline-flex;gap:24px;animation:fp-scroll 25s linear infinite"></div>
+  </div>
+</div>
   </div>
 </section>
 
@@ -836,7 +1024,7 @@ footer {
     </details>
     <details>
       <summary>Can I view results without running the bot?</summary>
-      <p>Yes. The web dashboard at <a href="https://myforexpulse.com/dashboard.php" style="color:var(--accent);">myforexpulse.com</a> shows live data pushed from the bot. Viewer accounts can monitor all performance metrics, open trades, and currency rankings without any access to the bot configuration.</p>
+      <p>Yes. The web dashboard at myforexpulse.com shows live data pushed from the bot. Viewer accounts can monitor all performance metrics, open trades, and currency rankings without any access to the bot configuration.</p>
     </details>
     <details>
       <summary>How long before I can go live?</summary>
@@ -858,7 +1046,6 @@ footer {
       <a href="#how">How It Works</a>
       <a href="#performance">Performance</a>
       <a href="dashboard.php">Dashboard</a>
-      <a href="guide.html">Trader's Guide</a>
     </div>
     <div class="foot-col">
       <h4>Access</h4>
@@ -873,25 +1060,151 @@ footer {
       <a href="#access">Demo Account</a>
     </div>
   </div>
+  <!-- Prominent disclaimer band -->
+  <div style="background:rgba(255,61,87,0.04);border:1px solid rgba(255,61,87,0.15);border-radius:10px;padding:20px 24px;margin-bottom:28px">
+    <div style="font-size:11px;font-weight:700;color:rgba(255,100,100,0.85);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">&#9888; Risk Warning &amp; Disclaimer</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.75">
+      <strong style="color:#c8d8ed">FXPulse is not a financial advisory service.</strong> Trading forex and CFDs involves significant risk of loss and is not suitable for all investors. All signals are generated by algorithms — we are not licensed financial advisors and nothing on this platform constitutes financial advice. Past performance does not guarantee future results. Results achieved by other users do not represent typical outcomes. <strong style="color:#c8d8ed">You trade at your own risk.</strong> Capital is at risk. By using this portal you accept full responsibility for all trading decisions made through your connected MT5 account. FXPulse and its developers accept no liability for financial losses incurred.
+    </div>
+  </div>
   <div class="foot-bottom">
-    <div class="foot-copy">&copy; 2026 FXPulse. All rights reserved.</div>
-    <div class="foot-risk">Trading forex and CFDs involves significant risk of loss and is not suitable for all investors. Past performance is not indicative of future results. FXPulse operates in paper trading mode by default.</div>
+    <div class="foot-copy">&copy; 2026 FXPulse. All rights reserved. &mdash; <a href="/" style="color:var(--muted);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">Home</a></div>
+    <div class="foot-risk">FXPulse is an algorithmic tool only. Not financial advice. Trading involves risk of total capital loss.</div>
   </div>
 </footer>
 
 <script>
-// Hero sparkline
+// FXPulse Bloomberg Terminal
 (function(){
-  const d = [100,102,101,104,103,106,105,108,107,110,109,112,111,114,116,115,118,117,120];
-  const ctx = document.getElementById('heroChart');
-  if(!ctx) return;
-  new Chart(ctx.getContext('2d'), {
-    type:'line',
-    data:{labels:d.map((_,i)=>i),datasets:[{data:d,borderColor:'#00ff88',borderWidth:2,
-      backgroundColor:'rgba(0,255,136,.08)',fill:true,tension:.4,pointRadius:0}]},
-    options:{responsive:true,animation:false,plugins:{legend:{display:false},tooltip:{enabled:false}},
-      scales:{x:{display:false},y:{display:false}}}
-  });
+  const pairs=[
+    {s:'EUR/USD',p:1.0812,c:+0.0052},{s:'GBP/USD',p:1.2743,c:+0.0038},
+    {s:'AUD/USD',p:0.6384,c:+0.0026},{s:'USD/JPY',p:154.32,c:-0.0134},
+    {s:'USD/CAD',p:1.3621,c:+0.0019},{s:'NZD/USD',p:0.5891,c:-0.0031},
+    {s:'USD/CHF',p:0.8912,c:-0.0027},{s:'GBP/JPY',p:196.54,c:+0.0389},
+    {s:'EUR/GBP',p:0.8487,c:-0.0012},{s:'AUD/JPY',p:98.43,c:+0.0261}
+  ];
+  const strength=[
+    {s:'GBP',v:0.0522,up:true},{s:'EUR',v:0.0519,up:true},{s:'AUD',v:0.0261,up:true},
+    {s:'USD',v:-0.0049,up:false},{s:'NZD',v:-0.0134,up:false},
+    {s:'JPY',v:-0.0269,up:false},{s:'CHF',v:-0.0279,up:false},{s:'CAD',v:-0.0375,up:false}
+  ];
+
+  let base=0.6384, prices=[], entry=0.6384;
+
+  function genPrices(){
+    prices=[];let p=0.6340;
+    for(let i=0;i<80;i++){p+=(Math.random()-0.48)*0.0008;p=Math.max(0.630,Math.min(0.645,p));prices.push(parseFloat(p.toFixed(4)));}
+    prices[79]=base;
+  }
+
+  function drawChart(){
+    const canvas=document.getElementById('fp-chart');
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    const W=canvas.parentElement.offsetWidth-32;
+    const H=280;
+    canvas.width=W;canvas.height=H;
+    ctx.clearRect(0,0,W,H);
+    const mn=Math.min(...prices)-0.001,mx=Math.max(...prices)+0.001,range=mx-mn;
+    const toY=v=>H-((v-mn)/range*(H-20))-10;
+    const toX=i=>i*(W/(prices.length-1));
+    ctx.strokeStyle='#1e2a3a';ctx.lineWidth=0.5;
+    for(let i=0;i<=4;i++){
+      const y=10+i*(H-20)/4;
+      ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+      ctx.fillStyle='#2a3a50';ctx.font='9px Courier New';
+      ctx.fillText((mx-i*(range/4)).toFixed(4),W-44,y-2);
+    }
+    ctx.beginPath();ctx.moveTo(toX(0),toY(prices[0]));
+    for(let i=1;i<prices.length;i++)ctx.lineTo(toX(i),toY(prices[i]));
+    ctx.strokeStyle='#00e676';ctx.lineWidth=1.5;ctx.stroke();
+    const grad=ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'rgba(0,230,118,0.15)');grad.addColorStop(1,'rgba(0,230,118,0)');
+    ctx.beginPath();ctx.moveTo(toX(0),toY(prices[0]));
+    for(let i=1;i<prices.length;i++)ctx.lineTo(toX(i),toY(prices[i]));
+    ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+    const maAvg=prices.slice(-20).reduce((a,b)=>a+b)/20;
+    ctx.setLineDash([3,3]);ctx.strokeStyle='#f90';ctx.lineWidth=1;
+    const maY=toY(maAvg);
+    ctx.beginPath();ctx.moveTo(0,maY);ctx.lineTo(W,maY);ctx.stroke();
+    ctx.setLineDash([]);
+    const lx=toX(prices.length-1),ly=toY(prices[prices.length-1]);
+    ctx.fillStyle='#00e676';ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#0a0e17';ctx.beginPath();ctx.arc(lx,ly,2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(55,138,221,0.9)';ctx.font='bold 10px Courier New';
+    ctx.fillText(prices[prices.length-1].toFixed(4),lx-22,H-2);
+  }
+
+  function buildStrength(){
+    const el=document.getElementById('fp-strength');
+    if(!el)return;
+    el.innerHTML=strength.map((r,i)=>{
+      const pct=Math.abs(r.v)/0.0522*85;
+      const col=r.up?'#00e676':'#ff5252';
+      return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="font-size:10px;color:#4a6080;width:14px">${i+1}</span>
+        <span style="font-size:14px;color:#c8d0e0;width:34px;font-weight:700">${r.s}</span>
+        <div style="flex:1;height:6px;background:#1e2a3a;border-radius:3px;overflow:hidden">
+          <div style="width:${pct}%;height:100%;background:${col};border-radius:3px"></div>
+        </div>
+        <span style="font-size:13px;width:52px;text-align:right;font-family:'Courier New',monospace;color:${col}">${r.v>0?'+':''}${r.v.toFixed(4)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function buildTicker(){
+    const make=()=>pairs.map(p=>{
+      const col=p.c>0?'#00e676':'#ff5252';
+      const sgn=p.c>0?'+':'';
+      return `<span style="font-size:10px;white-space:nowrap;display:inline-flex;gap:6px;margin-right:24px">
+        <span style="color:#6080a0;font-weight:700">${p.s}</span>
+        <span style="color:#c8d0e0">${p.p.toFixed(4)}</span>
+        <span style="color:${col}">${sgn}${p.c.toFixed(4)}</span>
+      </span>`;
+    }).join('');
+    const t=document.getElementById('fp-ticker');
+    const t2=document.getElementById('fp-ticker2');
+    if(t)t.innerHTML=make();
+    if(t2)t2.innerHTML=make();
+  }
+
+  function tick(){
+    base+=(Math.random()-0.495)*0.0003;
+    base=parseFloat(Math.max(0.630,Math.min(0.645,base)).toFixed(4));
+    prices[prices.length-1]=base;
+    if(Math.random()<0.15){prices.push(base);if(prices.length>80)prices.shift();}
+    const bid=parseFloat((base-0.0001).toFixed(4));
+    const ask=parseFloat((base+0.0001).toFixed(4));
+    const chg=parseFloat((base-0.6361).toFixed(4));
+    const chgPct=((chg/0.6361)*100).toFixed(2);
+    const isUp=chg>=0;
+    const col=isUp?'#00e676':'#ff5252';
+    const p=document.getElementById('fp-live-price');
+    const b=document.getElementById('fp-big-price');
+    const c=document.getElementById('fp-live-chg');
+    if(p){p.textContent=base.toFixed(4);p.style.color=col;}
+    if(b){b.textContent=base.toFixed(4);b.style.color=col;}
+    if(c){c.textContent=`${chg>=0?'+':''}${chg.toFixed(4)} ${chg>=0?'+':''}${chgPct}%`;c.style.background=isUp?'#0a3320':'#3a0a0a';c.style.color=col;}
+    const bidEl=document.getElementById('fp-bid');const askEl=document.getElementById('fp-ask');
+    if(bidEl)bidEl.textContent=bid.toFixed(4);if(askEl)askEl.textContent=ask.toFixed(4);
+    const closeEl=document.getElementById('fp-close');if(closeEl)closeEl.textContent=base.toFixed(4);
+    const pnl=(base-entry)*10000*0.10;
+    const pnlEl=document.getElementById('fp-pnl');
+    if(pnlEl){pnlEl.textContent=(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(2);pnlEl.style.color=pnl>=0?'#00e676':'#ff5252';}
+    const conf=71.2+(Math.random()-0.5)*2;
+    const cpEl=document.getElementById('fp-conf-pct');const cbEl=document.getElementById('fp-conf-bar');
+    if(cpEl)cpEl.textContent=conf.toFixed(1)+'%';if(cbEl)cbEl.style.width=conf+'%';
+    drawChart();
+  }
+
+  function clock(){
+    const n=new Date();
+    const el=document.getElementById('fp-clock');
+    if(el)el.textContent=[n.getUTCHours(),n.getUTCMinutes(),n.getUTCSeconds()].map(v=>String(v).padStart(2,'0')).join(':')+' UTC';
+  }
+
+  genPrices();buildStrength();buildTicker();drawChart();clock();
+  setInterval(tick,1200);setInterval(clock,1000);
 })();
 
 // Performance chart
