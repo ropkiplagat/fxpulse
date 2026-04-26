@@ -12,7 +12,7 @@ if ($user['role'] === ROLE_ADMIN) {
     $state_file = BOT_FILE;
 } else {
     $user_state_file = USER_STATES_DIR . $user['username'] . '.json';
-    $state_file      = file_exists($user_state_file) ? $user_state_file : null;
+    $state_file      = file_exists($user_state_file) ? $user_state_file : BOT_FILE;
 }
 $state = ($state_file && file_exists($state_file))
     ? (json_decode(file_get_contents($state_file), true) ?? [])
@@ -37,7 +37,25 @@ $trades     = $state['open_trades']  ?? [];
 $equity_hist= $state['equity_history'] ?? [];
 $regime     = strtoupper($state['regime']      ?? 'UNKNOWN');
 $session    = strtoupper($state['session']     ?? 'NONE');
-$in_session = $state['in_session']   ?? false;
+$in_session   = $state['in_session']   ?? false;
+$next_session = $state['next_session'] ?? [];
+$regime_tradeable = $state['regime_tradeable'] ?? false;
+
+// Circuit breaker
+$cb             = $state['circuit_breaker'] ?? [];
+$cb_level       = (int)($cb['level']               ?? 0);
+$cb_dd_pct      = (float)($cb['session_drawdown_pct'] ?? 0);
+$cb_open_bal    = (float)($cb['session_open_balance']  ?? 0);
+$cb_triggered   = $cb['triggered_at'] ?? null;
+
+// Five-regime pill colour map
+$regime_pill_color = match($regime) {
+    'BULL'     => 'green',
+    'BEAR'     => 'red',
+    'CRASH'    => 'darkred',
+    'EUPHORIA' => 'purple',
+    default    => 'yellow',  // NEUTRAL, UNKNOWN, etc.
+};
 
 $_bot_online = false;
 if ($updated) {
@@ -152,6 +170,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .pill-red{background:#2d0f10;color:var(--red);border-color:#6e2124;}
 .pill-yellow{background:#2d1f0a;color:var(--yellow);border-color:#6e3c0e;}
 .pill-blue{background:#091f3d;color:var(--blue);border-color:#1f6feb;}
+.pill-purple{background:#1a0a2e;color:#c084fc;border-color:#7c3aed;}
+.pill-darkred{background:#2d0505;color:#ff6b6b;border-color:#8b0000;}
+.pill-orange{background:#2d1500;color:#fb923c;border-color:#c2410c;}
+.kpi-orange{border-color:#c2410c;}
+.kpi-orange .kpi-label{color:#fb923c;}
+.kpi-orange .kpi-value{color:#fb923c;}
+@keyframes flash-red{0%,100%{opacity:1}50%{opacity:0.3}}
+.flash-red{animation:flash-red 1s infinite;}
 
 /* KPI ROW */
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--gap);margin-bottom:var(--gap);}
@@ -231,8 +257,58 @@ tr:last-child td{border-bottom:none;}
 /* FOOTER */
 .foot{color:var(--muted);font-size:.72em;text-align:center;margin-top:8px;padding-bottom:24px;}
 
-@media(max-width:600px){.body{padding:12px;}.kpi-row{grid-template-columns:1fr 1fr;}
-  .hdr{padding:10px 14px;}.hdr-user{display:none;}}
+/* SESSION PANEL */
+.sess-panel{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px 22px;margin-bottom:var(--gap);display:grid;grid-template-columns:1fr auto;gap:28px;align-items:start;}
+@media(max-width:700px){.sess-panel{grid-template-columns:1fr;}}
+.sess-next{color:#f0b429;font-size:.92em;font-weight:700;margin-bottom:8px;line-height:1.4;}
+.sess-next strong{color:#f0b429;}
+.sess-explain{color:var(--muted);font-size:.82em;line-height:1.7;}
+.sess-explain strong{color:var(--text);}
+.sess-clock{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:270px;}
+.sess-item{background:var(--bg-card2);border:1px solid var(--border2);border-radius:8px;
+  padding:10px 14px;display:flex;flex-direction:column;gap:2px;}
+.sess-item.fxpulse-sess{border-color:var(--border);}
+.sess-city{font-size:.68em;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.sess-status{font-size:.85em;font-weight:700;}
+.sess-open{color:var(--green);}
+.sess-closed{color:var(--red);}
+.sess-countdown{font-size:.72em;color:#f0b429;font-variant-numeric:tabular-nums;min-height:1em;}
+.sess-badge{font-size:.6em;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+
+@media(max-width:600px){
+  .body{padding:10px;}
+  .kpi-row{grid-template-columns:1fr 1fr;}
+  .hdr{padding:8px 12px;}
+  .hdr-user{display:none;}
+  .hdr-admin,.hdr-signout{font-size:.75em;padding:3px 8px;}
+  .sess-clock{grid-template-columns:1fr 1fr;min-width:0;width:100%;}
+  .sess-panel{padding:14px 14px;gap:16px;}
+  .kpi{padding:14px 16px;}
+  .kpi-value{font-size:1.55em;}
+  .card{padding:14px 16px;}
+  .pair-row{flex-wrap:wrap;gap:6px;}
+  .pair-sym{font-size:.95em;}
+  .trade-row{flex-wrap:wrap;gap:6px;}
+  .news-row{flex-direction:column;align-items:flex-start;gap:2px;}
+  table{font-size:.78em;}
+  th,td{padding:5px 0;}
+  .bar-left{width:60px;}
+  .bar-track{margin:0 8px;}
+  .bar-score{width:54px;font-size:.78em;}
+  .status-bar{gap:5px;}
+  .pill{font-size:.7em;padding:3px 10px;}
+  .explain-row{gap:5px;}
+  .explain-chip{font-size:.7em;padding:4px 10px;}
+  .chart-wrap{height:170px;}
+  .off-session{flex-direction:column;gap:8px;padding:12px 14px;}
+}
+@media(max-width:400px){
+  .kpi-row{grid-template-columns:1fr;}
+  .sess-clock{grid-template-columns:1fr;}
+  .hdr-brand{font-size:.95em;}
+}
+body{overflow-x:hidden;}
 </style>
 </head>
 <body>
@@ -265,7 +341,7 @@ tr:last-child td{border-bottom:none;}
       <div class="step">
         <div class="step-num">Step 2 &mdash; Done</div>
         <div class="step-title">&#10003; MT5 connected</div>
-        <div class="step-desc">Your Pepperstone account is linked. <a href="dashboard.php" style="color:#58a6ff;">Review &rarr;</a></div>
+        <div class="step-desc">Your Pepperstone account is linked. <a href="connect-mt5.php" style="color:#58a6ff;">Review &rarr;</a></div>
       </div>
       <div class="step">
         <div class="step-num">Step 3 &mdash; Live now</div>
@@ -285,15 +361,43 @@ tr:last-child td{border-bottom:none;}
   </div>
   <?php endif; ?>
 
-  <?php if ($off_session): ?>
-  <div class="off-session">
-    <span class="off-session-icon">&#128307;</span>
-    <div class="off-session-text">
-      <strong>Markets are off-session right now</strong> &mdash; no new trade setups until the next active session.
-      Currency strength and regime analysis below are still live and updating. The bot resumes signal generation automatically at session open.
+  <?php if (!$in_session): ?>
+  <div class="sess-panel">
+    <div>
+      <div class="sess-next" id="nextSessLabel">&#9201; Calculating next session&hellip;</div>
+      <div class="sess-explain">
+        FXPulse trades <strong>London</strong> (5pm&ndash;2am AEST) and <strong>New York</strong> (11pm&ndash;8am AEST) sessions only
+        &mdash; highest volume, tightest spreads, strongest trends.<br>
+        Outside these hours the bot monitors but does not trade.
+        Currency strength and regime data below remain live and updating.
+      </div>
+    </div>
+    <div class="sess-clock">
+      <div class="sess-item">
+        <span class="sess-city">Sydney</span>
+        <span class="sess-status" id="sydStatus">--</span>
+        <span class="sess-countdown" id="sydCd"></span>
+      </div>
+      <div class="sess-item">
+        <span class="sess-city">Tokyo</span>
+        <span class="sess-status" id="tkyStatus">--</span>
+        <span class="sess-countdown" id="tkyCd"></span>
+      </div>
+      <div class="sess-item fxpulse-sess">
+        <span class="sess-city">London</span>
+        <span class="sess-status" id="lonStatus">--</span>
+        <span class="sess-countdown" id="lonCd"></span>
+        <span class="sess-badge">FXPulse trades</span>
+      </div>
+      <div class="sess-item fxpulse-sess">
+        <span class="sess-city">New York</span>
+        <span class="sess-status" id="nyStatus">--</span>
+        <span class="sess-countdown" id="nyCd"></span>
+        <span class="sess-badge">FXPulse trades</span>
+      </div>
     </div>
   </div>
-  <?php endif; ?>
+  <?php endif; // !$in_session ?>
 
   <?php if ($stale && !$is_new_user): ?>
   <div class="stale">
@@ -306,7 +410,7 @@ tr:last-child td{border-bottom:none;}
   <div class="explain-row">
     <div class="explain-chip"><span class="chip-dot dot-green"></span>AI scanning 28 pairs &mdash; updates every 60s</div>
     <div class="explain-chip"><span class="chip-dot dot-blue"></span>Session: <?= htmlspecialchars($session ?: 'detecting') ?></div>
-    <div class="explain-chip"><span class="chip-dot dot-<?= strpos($regime,'TREND')!==false ? 'green' : 'yellow' ?>"></span>Regime: <?= htmlspecialchars($regime) ?></div>
+    <div class="explain-chip"><span class="chip-dot dot-<?= $regime_pill_color ?>"></span>Regime: <?= htmlspecialchars($regime) ?></div>
     <div class="explain-chip"><span class="chip-dot dot-<?= $paper_mode ? 'yellow' : 'green' ?>"></span><?= $paper_mode ? 'Paper mode &mdash; no real money' : 'Live trading active' ?></div>
   </div>
   <?php endif; ?>
@@ -322,7 +426,7 @@ tr:last-child td{border-bottom:none;}
     <span class="pill <?= $in_session ? 'pill-green' : 'pill-red' ?>">
       <?= $in_session ? 'IN SESSION' : 'OFF SESSION' ?>
     </span>
-    <span class="pill pill-<?= strpos($regime,'TREND')!==false ? 'green' : 'yellow' ?>">
+    <span class="pill pill-<?= $regime_pill_color ?>">
       <?= htmlspecialchars($regime) ?>
     </span>
     <?php if ($updated): ?>
@@ -361,6 +465,37 @@ tr:last-child td{border-bottom:none;}
       <div class="kpi-label">Open Trades</div>
       <div class="kpi-value"><?= count($trades) ?></div>
       <div class="kpi-sub">Active positions</div>
+    </div>
+    <?php
+      $cb_kpi_class = match($cb_level) {
+        0 => 'kpi-green',
+        1 => 'kpi-yellow',
+        2 => 'kpi-orange',
+        3 => 'kpi-red',
+        4 => 'kpi-red',
+        default => 'kpi-white',
+      };
+      $cb_labels = [0=>'CLEAR',1=>'L1',2=>'L2',3=>'L3 PAUSED',4=>'EMERGENCY STOP'];
+      $cb_label  = $cb_labels[$cb_level] ?? "L{$cb_level}";
+    ?>
+    <div class="kpi <?= $cb_kpi_class ?>">
+      <div class="kpi-label">Circuit Breaker</div>
+      <div class="kpi-value <?= $cb_level === 4 ? 'flash-red' : '' ?>">
+        <?= htmlspecialchars($cb_label) ?>
+      </div>
+      <div class="kpi-sub">
+        <?php if ($cb_level === 0): ?>
+          Session DD: <?= $cb_dd_pct > 0 ? $cb_dd_pct.'%' : '&mdash;' ?>
+        <?php elseif ($cb_level === 1): ?>
+          DD: <?= $cb_dd_pct ?>% &mdash; lots halved
+        <?php elseif ($cb_level === 2): ?>
+          DD: <?= $cb_dd_pct ?>% &mdash; no entries
+        <?php elseif ($cb_level === 3): ?>
+          DD: <?= $cb_dd_pct ?>% &mdash; 1h pause
+        <?php else: ?>
+          DD: <?= $cb_dd_pct ?>% &mdash; manual reset
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 
@@ -403,9 +538,9 @@ tr:last-child td{border-bottom:none;}
             &#9888; Bot offline &mdash; no signals available
           <?php elseif (!$in_session): ?>
             &#128307; Off-session &mdash; signals resume when London or NY opens
-          <?php elseif ($regime === 'RANGING'): ?>
-            &#8987; Market is ranging &mdash; AI holding for trending conditions.<br>
-            <span style="font-size:.82em;">This is normal. No edge in a ranging market. Bot waits.</span>
+          <?php elseif (!$regime_tradeable): ?>
+            &#8987; Regime: <?= htmlspecialchars($regime) ?> &mdash; AI holding for bull or bear conditions.<br>
+            <span style="font-size:.82em;">This is normal. FXPulse only trades confirmed trends. Bot waits.</span>
           <?php else: ?>
             Scanning &mdash; pairs appear when AI confidence exceeds threshold
           <?php endif; ?>
@@ -448,8 +583,8 @@ tr:last-child td{border-bottom:none;}
             &#9888; Bot offline
           <?php elseif (!$in_session): ?>
             No positions &mdash; bot holds during off-session hours
-          <?php elseif ($regime === 'RANGING'): ?>
-            No positions &mdash; bot skips entries in ranging markets
+          <?php elseif (!$regime_tradeable): ?>
+            No positions &mdash; <?= htmlspecialchars($regime) ?> regime &mdash; bot skips entries
           <?php else: ?>
             No open positions &mdash; waiting for a qualifying setup
           <?php endif; ?>
@@ -606,6 +741,80 @@ tr:last-child td{border-bottom:none;}
   });
 })();
 <?php endif; ?>
+
+(function(){
+  // Session open hours in UTC: [openH, closeH]
+  // closeH < openH means session wraps midnight
+  var SESSIONS = {
+    sydStatus: { o:22, c:7,  cd:'sydCd',  fxp:false },
+    tkyStatus: { o:0,  c:9,  cd:'tkyCd',  fxp:false },
+    lonStatus: { o:8,  c:17, cd:'lonCd',  fxp:true  },
+    nyStatus:  { o:13, c:22, cd:'nyCd',   fxp:true  },
+  };
+
+  function isOpen(h, o, c) {
+    return o < c ? (h >= o && h < c) : (h >= o || h < c);
+  }
+  function minsUntil(nowMin, targetH) {
+    var diff = (targetH * 60 - nowMin + 1440) % 1440;
+    return diff === 0 ? 1440 : diff;
+  }
+  function fmtMins(m) {
+    var h = Math.floor(m / 60), mm = m % 60;
+    return h > 0 ? 'opens in ' + h + 'h ' + (mm < 10 ? '0' : '') + mm + 'm'
+                 : 'opens in ' + mm + 'm';
+  }
+  function fmtAEST(utcH) {
+    var aest = (utcH + 10) % 24;
+    var ap = aest >= 12 ? 'PM' : 'AM';
+    var h12 = aest % 12 || 12;
+    return h12 + ':00 ' + ap + ' AEST';
+  }
+
+  function tick() {
+    var now  = new Date();
+    var utcH = now.getUTCHours();
+    var nowMin = utcH * 60 + now.getUTCMinutes();
+
+    for (var id in SESSIONS) {
+      var s   = SESSIONS[id];
+      var el  = document.getElementById(id);
+      var cEl = document.getElementById(s.cd);
+      if (!el) continue;
+      var open = isOpen(utcH, s.o, s.c);
+      el.textContent = open ? 'OPEN' : 'CLOSED';
+      el.className   = 'sess-status ' + (open ? 'sess-open' : 'sess-closed');
+      if (cEl) cEl.textContent = open ? '' : fmtMins(minsUntil(nowMin, s.o));
+    }
+
+    // Next session headline
+    var lbl = document.getElementById('nextSessLabel');
+    if (!lbl) return;
+    var lonOpen = isOpen(utcH, 8,  17);
+    var nyOpen  = isOpen(utcH, 13, 22);
+    if (lonOpen && nyOpen) {
+      lbl.innerHTML = '&#9679; London &amp; New York sessions are OPEN &mdash; bot is scanning for setups';
+      lbl.style.color = '#3fb950';
+    } else if (lonOpen) {
+      lbl.innerHTML = '&#9679; London session is OPEN &mdash; bot is scanning for setups';
+      lbl.style.color = '#3fb950';
+    } else if (nyOpen) {
+      lbl.innerHTML = '&#9679; New York session is OPEN &mdash; bot is scanning for setups';
+      lbl.style.color = '#3fb950';
+    } else {
+      var mLon = minsUntil(nowMin, 8);
+      var mNY  = minsUntil(nowMin, 13);
+      lbl.style.color = '#f0b429';
+      if (mLon <= mNY) {
+        lbl.innerHTML = '&#9201; Next session: <strong>London</strong> opens at ' + fmtAEST(8) + ' (08:00 UTC) &mdash; ' + fmtMins(mLon);
+      } else {
+        lbl.innerHTML = '&#9201; Next session: <strong>New York</strong> opens at ' + fmtAEST(13) + ' (11:00 PM AEST / 13:00 UTC) &mdash; ' + fmtMins(mNY);
+      }
+    }
+  }
+
+  if (document.getElementById('lonStatus')) { tick(); setInterval(tick, 30000); }
+})();
 </script>
 </body>
 </html>
