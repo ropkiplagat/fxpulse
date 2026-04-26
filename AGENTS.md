@@ -8,6 +8,41 @@ Newest section at top.
 
 ---
 
+## Telegram multi-subscriber activation — 26 April 2026
+
+**Auditor:** Claude (claude-sonnet-4-6)
+**Status:** COMPLETE — end-to-end confirmed, messages received on phone
+
+### What was done
+- Audited `telegram_alerts.py` — NOT stubbed, real HTTP calls, both alert functions present
+- Found paper ENTRY alert gated behind `if not config.PAPER_TRADING` — fixed
+- Found single `TELEGRAM_CHAT_ID` — replaced with multi-subscriber loop
+- `config.py`: wired `TELEGRAM_TOKEN` and `TELEGRAM_SUBSCRIBERS` to read from `.env`
+- Deployed: config.py, telegram_alerts.py, main.py → GitHub → VPS via Invoke-WebRequest
+- Bot restarted clean: no crash loop, Memory:10MB (Telegram loaded), no tracebacks
+- Test message sent via `C:\Python310\python.exe` from `C:\fxpulse` — delivered ✅
+
+### Architecture
+- Bot reads `TELEGRAM_BOT_TOKEN` and `TELEGRAM_SUBSCRIBERS` from `C:\fxpulse\.env`
+- `TELEGRAM_SUBSCRIBERS` = comma-separated list of chat_ids
+- Each subscriber DMs the bot with `/start` once — owner adds their chat_id to `.env`
+- One delivery failure doesn't block others (per-subscriber try/except)
+
+### Alert coverage
+- Paper ENTRY → Telegram ✅ (fixed tonight)
+- Paper EXIT → Telegram ✅ (was already wired in paper_trader.py)
+- Live ENTRY → Telegram ✅
+- Live EXIT → Telegram ✅
+- Daily summary, drawdown halt, news block → Telegram ✅
+
+### To add new subscriber
+1. Have them open Telegram, search bot, send /start
+2. Open `https://api.telegram.org/bot<TOKEN>/getUpdates` — find their chat_id
+3. Add to TELEGRAM_SUBSCRIBERS in `C:\fxpulse\.env` (comma-separated)
+4. Restart bot task
+
+---
+
 ## London session window analysis — 22 April 2026
 
 **Auditor:** Claude (claude-sonnet-4-6)
