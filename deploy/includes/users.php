@@ -44,18 +44,19 @@ function create_user(string $username, string $password, string $email, string $
     $status      = STATUS_APPROVED;
     $approved_at = date('c');
     $users[$username] = [
-        'username'   => $username,
-        'hash'       => password_hash($password, PASSWORD_DEFAULT),
-        'email'      => $email,
-        'full_name'  => $full_name,
-        'role'       => ROLE_VIEWER,
-        'status'     => $status,
-        'created_at' => date('c'),
-        'approved_at'=> $approved_at,
-        'last_login' => null,
+        'username'        => $username,
+        'hash'            => password_hash($password, PASSWORD_DEFAULT),
+        'email'           => $email,
+        'full_name'       => $full_name,
+        'role'            => ROLE_VIEWER,
+        'status'          => $status,
+        'email_confirmed' => false,
+        'created_at'      => date('c'),
+        'approved_at'     => $approved_at,
+        'last_login'      => null,
     ];
     save_users($users);
-    activity_log("REGISTER: $username ($email) — auto-approved (founding member)");
+    activity_log("REGISTER: $username ($email) — auto-approved, email pending confirmation");
     return $users[$username];
 }
 
@@ -85,6 +86,31 @@ function delete_user(string $username): bool {
     save_users($users);
     activity_log("DELETED: $username by admin");
     return true;
+}
+
+function confirm_email(string $username): void {
+    $users = load_users();
+    if (isset($users[$username])) {
+        $users[$username]['email_confirmed'] = true;
+        save_users($users);
+        activity_log("EMAIL CONFIRMED: $username");
+    }
+}
+
+function update_password(string $username, string $new_password): void {
+    $users = load_users();
+    if (isset($users[$username])) {
+        $users[$username]['hash'] = password_hash($new_password, PASSWORD_DEFAULT);
+        save_users($users);
+        activity_log("PASSWORD RESET: $username");
+    }
+}
+
+function get_user_by_email(string $email): ?array {
+    foreach (load_users() as $u) {
+        if (strtolower($u['email']) === strtolower($email)) return $u;
+    }
+    return null;
 }
 
 function update_last_login(string $username): void {
