@@ -345,6 +345,14 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                 if last_trade and datetime.now(timezone.utc) - last_trade < timedelta(minutes=config.COOLDOWN_MINUTES):
                     continue
 
+                # Global concurrent trade cap
+                if config.PAPER_TRADING:
+                    total_open = len(paper.get_open_positions()) if paper else 0
+                else:
+                    total_open = len(mt5c.get_open_positions())
+                if total_open >= config.MAX_CONCURRENT_TRADES:
+                    break
+
                 # Already in position (paper: check virtual positions; live: check MT5)
                 if config.PAPER_TRADING:
                     if paper and paper.get_open_positions(symbol=symbol):
