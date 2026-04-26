@@ -485,8 +485,8 @@ def run_trading_loop(xgb_predictor: ai.AIPredictor, lstm_predictor=None):
                     if not config.PAPER_TRADING:
                         perf.log_trade(str(ticket), symbol, direction, lot,
                                        entry_price, sl, tp, final_prob)
-                        tg.alert_trade_opened(symbol, direction, lot,
-                                              entry_price, sl, tp, final_prob, adj_confluence)
+                    tg.alert_trade_opened(symbol, direction, lot,
+                                          entry_price, sl, tp, final_prob, adj_confluence)
                     mode_str = "[PAPER]" if config.PAPER_TRADING else "[LIVE]"
                     print(f"[BOT] {mode_str} Trade initiated: {direction.upper()} {symbol}")
                     if config.PAPER_TRADING:
