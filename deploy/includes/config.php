@@ -34,6 +34,9 @@ define('STATUS_PENDING',  'pending');
 define('STATUS_APPROVED', 'approved');
 define('STATUS_REJECTED', 'rejected');
 
+// Traded pairs — only these 5 majors (Bethwel spec)
+define('TRADED_PAIRS', ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD']);
+
 // Ensure data dirs exist
 if (!is_dir(DATA_DIR))        mkdir(DATA_DIR,        0750, true);
 if (!is_dir(USER_STATES_DIR)) mkdir(USER_STATES_DIR, 0750, true);
