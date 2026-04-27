@@ -29,6 +29,64 @@ trading_paused = False
 _bot_running   = False
 _last_update   = 0   # Telegram update offset
 
+SUBSCRIBERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "subscribers.json")
+
+WELCOME_MSG = (
+    "Welcome to *FXPulse* 🤖\n\n"
+    "You're now subscribed to live AI forex signals.\n\n"
+    "*What to expect:*\n"
+    "• 5 majors: EURUSD · GBPUSD · USDJPY · AUDUSD · USDCAD\n"
+    "• Signals during London (07:00–16:00 UTC) & New York (13:00–22:00 UTC)\n"
+    "• Each alert: direction, entry, SL/TP, AI confidence\n"
+    "• Dashboard: myforexpulse.com/dashboard.php\n\n"
+    "_Sit tight — signals fire when the AI finds a setup._"
+)
+
+
+def load_subscribers() -> list:
+    if not os.path.exists(SUBSCRIBERS_FILE):
+        return []
+    try:
+        with open(SUBSCRIBERS_FILE) as f:
+            return json.load(f)
+    except Exception:
+        return []
+
+
+def save_subscriber(chat_id: str, name: str) -> bool:
+    """Add subscriber if not already present. Returns True if newly added."""
+    subs = load_subscribers()
+    for s in subs:
+        if str(s.get("chat_id")) == str(chat_id):
+            return False
+    subs.append({
+        "chat_id":   str(chat_id),
+        "name":      name,
+        "joined_at": datetime.now(timezone.utc).isoformat(),
+        "active":    True,
+    })
+    with open(SUBSCRIBERS_FILE, "w") as f:
+        json.dump(subs, f, indent=2)
+    print(f"[TG-BOT] New subscriber: {name} (id={str(chat_id)[:6]}...)")
+    return True
+
+
+def _handle_start(msg: dict):
+    chat_id = str(msg.get("chat", {}).get("id", ""))
+    name    = msg.get("from", {}).get("first_name", "Trader")
+    if not chat_id:
+        return
+    is_new = save_subscriber(chat_id, name)
+    text   = WELCOME_MSG if is_new else f"Hey {name}, you're already subscribed. Signals on the way!"
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{_token()}/sendMessage",
+            data={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
+            timeout=5,
+        )
+    except Exception as e:
+        print(f"[TG-BOT] Welcome send failed: {e}")
+
 
 def _token():
     return getattr(config, "TELEGRAM_TOKEN", "")
@@ -195,9 +253,13 @@ def _poll_loop():
         updates = _get_updates(_last_update)
         for update in updates:
             _last_update = update["update_id"] + 1
-            msg = update.get("message", {})
+            msg  = update.get("message", {})
             text = msg.get("text", "").strip().split()[0].lower()  # first word only
-            # Only accept messages from authorised chat
+            # /start is open to everyone — auto-subscribe
+            if text == "/start":
+                _handle_start(msg)
+                continue
+            # All other commands: only authorised admin chat
             from_id = str(msg.get("chat", {}).get("id", ""))
             if from_id != str(_chat_id()):
                 continue
