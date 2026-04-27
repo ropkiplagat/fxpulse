@@ -408,9 +408,16 @@ html,body{height:100%;font-family:'Sora',sans-serif;background:var(--bg);color:v
 
 /* Responsive */
 @media(max-width:960px){
+  html,body{height:auto}
   .left{display:none}
-  .wrap{justify-content:center}
+  .wrap{justify-content:center;min-height:100vh}
   .right{width:100%;max-width:520px;margin:0 auto;padding:52px 24px;border-left:none;justify-content:flex-start;padding-top:60px}
+}
+@media(max-width:480px){
+  .right{padding:40px 20px}
+  .f-title{font-size:22px}
+  .type-group,.lot-group{flex-wrap:wrap}
+  .type-btn,.lot-btn{flex:1 1 calc(50% - 4px)}
 }
 </style>
 </head>
