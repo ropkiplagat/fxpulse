@@ -230,6 +230,38 @@ def main():
         if cnt > 0:
             lines.append(f"| {hist_edges[i]:.2f}–{hist_edges[i+1]:.2f} | {cnt:,} |")
 
+    # ── Phase 1 Scorecard ────────────────────────────────────────────────────
+    n_pairs_retrieved = len([p for p in TRADED_PAIRS if p in m15_data])
+    max_gap           = float(np.max(all_gaps))
+    gap_p50           = float(np.percentile(all_gaps, 50))
+    obs_at_010        = int(np.sum(all_gaps > 0.10))
+    per_wk_at_010     = (obs_at_010 / len(TRADED_PAIRS)) / weeks
+
+    sc = [
+        "",
+        "---",
+        "## Phase 1 Scorecard",
+        "| Check | Target | Actual | Status |",
+        "|-------|--------|--------|--------|",
+        f"| Pairs retrieved          | 5 / 5  | {n_pairs_retrieved} / 5 | {'PASS' if n_pairs_retrieved == 5 else 'FAIL'} |",
+        f"| Total observations       | ≥ 500  | {len(all_gaps):,}     | {'PASS' if len(all_gaps) >= 500 else 'FAIL'} |",
+        f"| Max achievable gap       | > 0.05 | {max_gap:.4f}         | {'PASS' if max_gap > 0.05 else 'FAIL'} |",
+        f"| Unit mismatch confirmed  | max < 1.5 | {max_gap:.4f} < 1.5 | {'PASS' if max_gap < 1.5 else 'FAIL'} |",
+        f"| Threshold 0.10 viable    | ≥ 5 /pair/wk | {per_wk_at_010:.1f} /pair/wk | {'PASS' if per_wk_at_010 >= 5 else 'FAIL'} |",
+        f"| Median gap usable        | > 0.02 | {gap_p50:.4f}         | {'PASS' if gap_p50 > 0.02 else 'FAIL'} |",
+    ]
+    checks_passed = sum([
+        n_pairs_retrieved == 5,
+        len(all_gaps) >= 500,
+        max_gap > 0.05,
+        max_gap < 1.5,
+        per_wk_at_010 >= 5,
+        gap_p50 > 0.02,
+    ])
+    sc.append(f"")
+    sc.append(f"**Score: {checks_passed}/6**  — {'READY FOR PHASE 2' if checks_passed >= 5 else 'REVIEW BEFORE PROCEEDING'}")
+    lines += sc
+
     output = "\n".join(lines)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(output)
