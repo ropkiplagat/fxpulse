@@ -8,6 +8,23 @@ Newest section at top.
 
 ---
 
+## SECRETS HYGIENE — ABSOLUTE (27 April 2026)
+
+Secrets from .env must NEVER appear verbatim in CC output — tokens, passwords, keys, connection strings.
+
+**Non-negotiable rules:**
+1. Use placeholders (`<token>`, `$env:GITHUB_TOKEN`) — never the real value in chat or code blocks shown to Rop
+2. Read secrets via env-var assignment in the same shell call, never echoed to output
+3. If a step requires a secret and can't use env-var referencing: stop and offer (a) silent execution or (b) defer to Rop's own terminal
+4. Before any GitHub commit: scan diff for `ghp_|sk-|AKIA|password|token|secret` patterns — STOP if matched, alert Rop
+5. If Rop pastes a secret by mistake: acknowledge without echoing it, treat it as compromised, recommend rotation
+
+**Incidents:**
+- 27 Apr 2026: GitHub PAT inlined as `$token = "ghp_..."` in PowerShell command during Phase 1 deploy. Token revoked + rotated. This rule codified.
+- Earlier sessions: Telegram token exposed 3x. Rotated.
+
+---
+
 ## Telegram multi-subscriber activation — 26 April 2026
 
 **Auditor:** Claude (claude-sonnet-4-6)
