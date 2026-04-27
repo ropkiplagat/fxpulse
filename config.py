@@ -55,7 +55,11 @@ MAGIC_NUMBER          = 20001
 SLIPPAGE              = 10
 
 # === AI Predictor ===
-MIN_WIN_PROBABILITY   = 0.65   # Only trade if AI confidence >= 65%
+# 28 April 2026 — Phase 2 matrix backtest deployment
+# Production model outputs 0.3-2%; previous prob=0.65 was unreachable (model ceiling ~26%)
+# gap=0.135 + prob=0.05 → best risk-adjusted cell in Phase 2 matrix (WR=55.6%, PF=2.44, DD=1.99%)
+# Week-2: retrain model with class_weight=balanced; revisit prob threshold then
+MIN_WIN_PROBABILITY   = 0.05   # Phase 2 deploy: model ceiling ~26%, prob=0.05 fires trades
 MODEL_PATH            = "models/xgb_forex.pkl"
 SCALER_PATH           = "models/scaler.pkl"
 RETRAIN_EVERY_BARS    = 500    # Re-train after this many new bars
