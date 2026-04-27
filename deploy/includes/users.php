@@ -50,13 +50,13 @@ function create_user(string $username, string $password, string $email, string $
         'full_name'       => $full_name,
         'role'            => ROLE_VIEWER,
         'status'          => $status,
-        'email_confirmed' => false,
+        'email_confirmed' => true,
         'created_at'      => date('c'),
         'approved_at'     => $approved_at,
         'last_login'      => null,
     ];
     save_users($users);
-    activity_log("REGISTER: $username ($email) — auto-approved, email pending confirmation");
+    activity_log("REGISTER: $username ($email) — auto-approved, access immediate");
     return $users[$username];
 }
 
