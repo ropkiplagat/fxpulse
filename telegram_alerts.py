@@ -3,16 +3,39 @@ Telegram Alerts — sends trade notifications to your Telegram.
 Setup: create a bot via @BotFather, get token + chat ID.
 """
 import requests
+import json
+import os
 from datetime import datetime, timezone
 import config
+
+_SUBS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "subscribers.json")
+
 
 def _get_token() -> str:
     return getattr(config, "TELEGRAM_TOKEN", "")
 
 
 def _get_subscribers() -> list:
+    subs = []
+    # Primary: subscribers.json (auto-subscribe via /start)
+    if os.path.exists(_SUBS_FILE):
+        try:
+            with open(_SUBS_FILE) as f:
+                data = json.load(f)
+            for s in data:
+                if s.get("active") and s.get("chat_id"):
+                    c = str(s["chat_id"]).strip()
+                    if c:
+                        subs.append(c)
+        except Exception:
+            pass
+    # Fallback: .env / config TELEGRAM_SUBSCRIBERS (manual admin entries)
     raw = getattr(config, "TELEGRAM_SUBSCRIBERS", "") or getattr(config, "TELEGRAM_CHAT_ID", "")
-    return [c.strip() for c in str(raw).split(",") if c.strip()]
+    for c in str(raw).split(","):
+        c = c.strip()
+        if c and c not in subs:
+            subs.append(c)
+    return subs
 
 
 def _send(message: str) -> bool:
