@@ -81,7 +81,12 @@ TRADE_IN_SESSIONS = ["london", "new_york"]  # Only trade these sessions
 OVERLAP_BONUS = True  # Prefer London/NY overlap (12-16 UTC)
 
 # === Confluence Thresholds ===
-MIN_STRENGTH_GAP     = 1.5    # Min strength difference between currencies
+# MIN_STRENGTH_GAP recalibrated 27 April 2026 evening
+# Previous value 1.5 was unreachable; currency_strength.py outputs in -0.2 to +0.2 range
+# 0.135 = 90th percentile of 30-day strength gap distribution (Phase 1 analysis)
+# Phase 2 multi-threshold backtest will validate this choice on 28 April 2026
+# If Phase 2 finds a better value, this will be updated
+MIN_STRENGTH_GAP     = 0.135  # Min strength difference between currencies
 MIN_CONFLUENCE_SCORE = 0.60   # Minimum signal confluence score
 TOP_PAIRS_COUNT      = 3      # Show top N pairs
 
