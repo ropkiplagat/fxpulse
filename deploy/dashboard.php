@@ -71,6 +71,27 @@ $paper_mode  = $state['paper_trading'] ?? true;
 
 if ($strength) uasort($strength, fn($a,$b) => ($a['rank']??9) - ($b['rank']??9));
 
+// Filter strength to only traded currencies (EUR GBP USD JPY AUD CAD)
+$traded_ccy = [];
+foreach (TRADED_PAIRS as $_p) {
+    $traded_ccy[substr($_p,0,3)] = true;
+    $traded_ccy[substr($_p,3,3)] = true;
+}
+$strength = array_filter($strength, fn($_,$c) => isset($traded_ccy[$c]), ARRAY_FILTER_USE_BOTH);
+
+// Build trading pairs data with strength gaps
+$pair_signals = [];
+foreach (TRADED_PAIRS as $_pair) {
+    $base  = substr($_pair,0,3);
+    $quote = substr($_pair,3,3);
+    $bs    = $strength[$base]['score']  ?? null;
+    $qs    = $strength[$quote]['score'] ?? null;
+    $gap   = ($bs !== null && $qs !== null) ? round($bs - $qs, 4) : null;
+    $bias  = $gap === null ? 'DATA' : ($gap > 0.05 ? 'BUY' : ($gap < -0.05 ? 'SELL' : 'NEUTRAL'));
+    $pair_signals[] = ['pair'=>$_pair,'base'=>$base,'quote'=>$quote,'bs'=>$bs,'qs'=>$qs,'gap'=>$gap,'bias'=>$bias];
+}
+usort($pair_signals, fn($a,$b) => abs($b['gap']??0) <=> abs($a['gap']??0));
+
 $age_sec   = $updated ? (time() - strtotime($updated)) : null;
 $stale     = ($age_sec === null || $age_sec > 120);
 
@@ -612,6 +633,29 @@ body{overflow-x:hidden;}
 
   <!-- Strength Detail + News -->
   <div class="grid2">
+
+    <div class="card">
+      <div class="card-title">Trading Pairs <span class="badge pill-blue"><?= count(TRADED_PAIRS) ?> majors</span></div>
+      <?php if (empty($pair_signals) || $pair_signals[0]['gap'] === null): ?>
+        <div class="no-data"><?= $bot_running ? '&#128307; Strength loading&hellip;' : '&#9888; Bot offline' ?></div>
+      <?php else: ?>
+        <?php foreach ($pair_signals as $ps):
+          $gcls = $ps['bias']==='BUY' ? 'green' : ($ps['bias']==='SELL' ? 'red' : 'muted');
+          $arrow = $ps['bias']==='BUY' ? '&#9650;' : ($ps['bias']==='SELL' ? '&#9660;' : '&mdash;');
+        ?>
+        <div class="pair-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="pair-sym"><?= $ps['pair'] ?></span>
+            <span class="pair-dir <?= $ps['bias']==='BUY'?'dir-buy':($ps['bias']==='SELL'?'dir-sell':'') ?>"><?= $arrow ?> <?= $ps['bias'] ?></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <span class="pair-gap">Gap <?= $ps['gap'] !== null ? ($ps['gap']>=0?'+':'').number_format($ps['gap'],4) : '—' ?></span>
+            <span class="<?= $gcls ?>" style="font-size:.78em;"><?= $ps['base'] ?> <?= $ps['bs']!==null?($ps['bs']>=0?'+':'').number_format($ps['bs'],3):'' ?> / <?= $ps['quote'] ?> <?= $ps['qs']!==null?($ps['qs']>=0?'+':'').number_format($ps['qs'],3):'' ?></span>
+          </div>
+        </div>
+        <?php endforeach; ?>
+      <?php endif; ?>
+    </div>
 
     <div class="card">
       <div class="card-title">Strength Detail</div>
