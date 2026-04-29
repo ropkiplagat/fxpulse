@@ -367,7 +367,7 @@ body{overflow-x:hidden;}
       <div class="step">
         <div class="step-num">Step 3 &mdash; Live now</div>
         <div class="step-title">Watch the signals</div>
-        <div class="step-desc">Currency strength, regime, and top pair setups update every 60 seconds automatically.</div>
+        <div class="step-desc">Currency strength, regime, and top pair setups update every 60 seconds automatically. <a href="guide.html" style="color:#58a6ff;">Read the Trader's Guide &rarr;</a></div>
       </div>
       <div class="step">
         <div class="step-num">Step 4 &mdash; Your action</div>

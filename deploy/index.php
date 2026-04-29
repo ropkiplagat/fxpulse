@@ -578,7 +578,7 @@ footer {
     </div>
     <div class="disc-check">
       <input type="checkbox" id="discAgree" onchange="document.getElementById('discAccept').disabled=!this.checked">
-      <label for="discAgree">I have read and understood the risk disclaimer. I accept full responsibility for any trading decisions made using FXPulse and acknowledge this is not financial advice.</label>
+      <label for="discAgree">I have read and understood the risk disclaimer. I accept full responsibility for any trading decisions made using FXPulse and acknowledge this is not financial advice. <a href="guide.html">Trader's Guide &rarr;</a></label>
     </div>
     <button class="disc-btn" id="discAccept" disabled onclick="acceptDisclaimer()">I Understand &mdash; Continue to FXPulse</button>
   </div>
