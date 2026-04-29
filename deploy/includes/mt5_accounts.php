@@ -106,7 +106,8 @@ function allowed_brokers(): array {
     return [
         'Pepperstone-Demo', 'Pepperstone-Live',
         'ICMarkets-Demo',   'ICMarkets-Live',
-        'FPMarkets-Demo',   'FusionMarkets-Demo',
+        'FPMarkets-Demo',   'FPMarkets-Live',
+        'FusionMarkets-Demo',
         'Vantage-Demo',     'Eightcap-Demo',
         'GOMarkets-Demo',   'XMGlobal-Demo',
         'AvaTrade-Demo',    'HFM-Demo',

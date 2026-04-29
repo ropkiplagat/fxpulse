@@ -622,7 +622,7 @@ html,body{height:100%;font-family:'Sora',sans-serif;background:var(--bg);color:v
       </div>
     <?php endif; ?>
 
-    <form method="POST" action="/connect-mt5.php" autocomplete="off">
+    <form method="POST" action="connect-mt5.php" autocomplete="off">
       <input type="hidden" name="action"     value="connect">
       <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf) ?>">
       <div style="position:absolute;left:-9999px">
