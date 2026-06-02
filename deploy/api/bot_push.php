@@ -2,7 +2,7 @@
 /**
  * Bot Data Push Endpoint
  * The Python bot on Windows POSTs JSON body here every 60 seconds.
- * URL: https://yourdomain.com/fxpulse/api/bot_push.php
+ * URL: https://myforexpulse.com/api/bot_push.php
  */
 require_once __DIR__ . '/../includes/config.php';
 

@@ -716,7 +716,7 @@ html,body{height:100%;font-family:'Sora',sans-serif;background:var(--bg);color:v
       AES-256 encrypted &mdash; your password is never stored in plaintext
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
-      <a href="/dashboard.php" class="back-link" style="margin:0">&#8592; Dashboard</a>
+      <a href="dashboard.php" class="back-link" style="margin:0">&#8592; Dashboard</a>
       <a href="/" class="back-link" style="margin:0">&#8962; Home</a>
     </div>
     <div style="margin-top:20px;padding:14px 16px;background:rgba(255,71,87,0.05);border:1px solid rgba(255,71,87,0.15);border-radius:8px;font-size:11px;color:rgba(200,216,237,0.4);line-height:1.65;text-align:center">
