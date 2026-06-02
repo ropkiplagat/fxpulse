@@ -63,6 +63,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["api_key"])) {
         http_response_code(400);
         die("Invalid JSON");
     }
+    $data_dir = dirname($DATA_FILE);
+    if (!is_dir($data_dir)) {
+        mkdir($data_dir, 0750, true);
+    }
     file_put_contents($DATA_FILE, $data);
     echo "OK";
     exit;
