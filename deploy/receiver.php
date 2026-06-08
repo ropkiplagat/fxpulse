@@ -18,7 +18,7 @@ session_start();
 // =========================================================
 
 $API_KEY   = "0d070602123b2dbf102ab30f01d95f34cab48bf4e08cabd8dd5b53561d6cdac7"; // Must match config.py SITEGROUND_API_KEY
-$DATA_FILE = __DIR__ . "/data/bot_state.json";
+$DATA_FILE = __DIR__ . "/data/bot_state.json"; // data/ is auto-created on first push if missing
 
 /**
  * USER ACCOUNTS
