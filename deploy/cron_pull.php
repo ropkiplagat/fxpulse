@@ -8,7 +8,8 @@
  * Interval: every minute (* * * * *)
  */
 
-define('DATA_DIR',        __DIR__ . '/data/');
+// Match the data directory used by config.php (one level above deploy/).
+define('DATA_DIR',        __DIR__ . '/../data/');
 define('USER_STATES_DIR', DATA_DIR . 'user_states/');
 define('BOT_FILE',        DATA_DIR . 'bot_state.json');
 define('LOGS_FILE',       DATA_DIR . 'cron.log');
