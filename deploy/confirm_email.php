@@ -52,7 +52,7 @@ a.btn:hover{background:#3a7fff}
 <?php else: ?>
   <div class="icon">❌</div>
   <h1>Link expired or invalid</h1>
-  <p>This confirmation link is invalid or has expired (links last 24 hours). Register again or contact support.</p>
+  <p>This confirmation link is invalid or has expired (links last 24 hours). Register again or <a href="mailto:support@myforexpulse.com" style="color:#1a6fff">contact support</a>.</p>
   <a class="btn" href="register.php">Register again</a>
 <?php endif; ?>
 </div>
