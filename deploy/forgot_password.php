@@ -1,8 +1,12 @@
 <?php
 require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/users.php';
 require_once __DIR__ . '/includes/tokens.php';
 require_once __DIR__ . '/includes/mailer.php';
+
+session_init();
+if (is_logged_in()) { header('Location: dashboard.php'); exit; }
 
 $sent   = false;
 $error  = '';

@@ -11,8 +11,6 @@
  *  - Auto-refresh live dashboard
  */
 
-session_start();
-
 // =========================================================
 // CONFIGURATION — Edit these before uploading
 // =========================================================
@@ -20,6 +18,8 @@ session_start();
 // Pull API key and BOT_FILE path from the shared config so this file stays in sync
 // with the rest of the application (avoids duplicate, divergent paths).
 require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/auth.php';
+session_init();
 $API_KEY   = API_KEY;
 $DATA_FILE = BOT_FILE; // Defined in config.php as DATA_DIR . 'bot_state.json'
 
