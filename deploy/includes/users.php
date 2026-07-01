@@ -50,7 +50,7 @@ function create_user(string $username, string $password, string $email, string $
         'full_name'       => $full_name,
         'role'            => ROLE_VIEWER,
         'status'          => $status,
-        'email_confirmed' => true,
+        'email_confirmed' => false,
         'created_at'      => date('c'),
         'approved_at'     => $approved_at,
         'last_login'      => null,
