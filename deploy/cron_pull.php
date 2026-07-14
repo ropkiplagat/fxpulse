@@ -8,11 +8,8 @@
  * Interval: every minute (* * * * *)
  */
 
-// Match the data directory used by config.php (one level above deploy/).
-defined('DATA_DIR')        || define('DATA_DIR',        __DIR__ . '/../data/');
-defined('USER_STATES_DIR') || define('USER_STATES_DIR', DATA_DIR . 'user_states/');
-defined('BOT_FILE')        || define('BOT_FILE',        DATA_DIR . 'bot_state.json');
-defined('LOGS_FILE')       || define('LOGS_FILE',       DATA_DIR . 'cron.log');
+require_once __DIR__ . '/includes/config.php';
+define('CRON_LOG', DATA_DIR . 'cron.log');
 define('RAW_BASE',        'https://raw.githubusercontent.com/ropkiplagat/fxpulse/main/');
 define('GH_API_BASE',     'https://api.github.com/repos/ropkiplagat/fxpulse/contents/');
 
@@ -70,5 +67,5 @@ if ($listing) {
 echo "OK\n";
 
 function _log(string $msg): void {
-    file_put_contents(LOGS_FILE, date('Y-m-d H:i:s') . " [CRON] $msg\n", FILE_APPEND);
+    file_put_contents(CRON_LOG, date('Y-m-d H:i:s') . " [CRON] $msg\n", FILE_APPEND);
 }
